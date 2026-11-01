@@ -1,0 +1,863 @@
+/* ==========================================================================
+   1. Basis: kleuren, maten en lettertype op één plek
+   ========================================================================== */
+
+/* Inter, uit je eigen map. Eén bestand bevat alle diktes van 400 tot 600. */
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url("../fonts/inter-latin.woff2") format("woff2");
+}
+
+:root {
+  --black: #0a0a0a;
+  --grey: #707070;
+  --light: #efefef;
+  --white: #ffffff;
+
+  --margin: 120px;      /* marge links en rechts */
+  --nav-top: 64px;      /* afstand van de nav tot de bovenkant */
+  --content-top: min(80px, 8svh);  /* afstand tussen nav en content, kleiner op een laag scherm */
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100svh;   /* svh: de hoogte die je echt ziet, ook met de balken van je gsm browser */
+  font-family: "Inter", sans-serif;
+  line-height: 1.2;
+  color: var(--black);
+  background: var(--white);
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Geen grijs of blauw vlak meer als je op een gsm op een link of knop tikt */
+a,
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Grijs vlak waar later een foto of beeld komt */
+.placeholder {
+  display: grid;
+  place-items: center;
+  background: var(--light);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--grey);
+}
+
+
+/* ==========================================================================
+   2. Navigatie
+   ========================================================================== */
+
+/* Drie kolommen: links en rechts even breed, ME in het midden.
+   Zo staat ME altijd exact in het midden van de pagina,
+   ook al is CONTACT veel langer dan WORK. */
+.nav {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  column-gap: 80px;
+  padding-top: var(--nav-top);
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.nav a:first-child {
+  justify-self: end;
+}
+
+.nav a:last-child {
+  justify-self: start;
+}
+
+.nav a {
+  opacity: 0.35;
+  transition: opacity 0.2s ease;
+}
+
+/* De pagina waar je bent, en de link waar je muis op staat */
+.nav a[aria-current="page"],
+.nav a:hover {
+  opacity: 1;
+}
+
+/* Home: grote nav in het midden van het scherm */
+.nav--home {
+  flex: 1;
+  align-content: center;
+  column-gap: 130px;
+  padding-top: 0;
+  font-size: 40px;
+}
+
+.nav--home a {
+  opacity: 1;
+}
+
+
+/* ==========================================================================
+   3. Pagina inhoud
+   ========================================================================== */
+
+.page {
+  flex: 1;
+  padding: var(--content-top) var(--margin) var(--margin);
+}
+
+
+/* ==========================================================================
+   4. Work: carrousel met projecten
+   ========================================================================== */
+
+/* De pagina vult het scherm. Carrousel en bolletjes staan verticaal in het midden,
+   met boven en onder evenveel ruimte. De auto marges centreren, maar duwen op een
+   klein scherm niets boven de nav uit (dat zou justify-content: center wel doen). */
+.page--work {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: var(--content-top);
+}
+
+/* De rij met kaarten. Scrollen doet de browser zelf: met je trackpad of je vinger.
+   scroll-snap laat elke kaart in het midden vastklikken.
+   De rij loopt tot aan de randen van het scherm (negatieve marge),
+   en de padding zorgt dat de eerste en laatste kaart ook in het midden kunnen staan.
+   De kaart is nooit breder dan 840 px, en past altijd in de hoogte van het scherm. */
+.work-grid {
+  --card-width: min(840px, 50vw, (100svh - 420px) * 1.5);
+
+  position: relative;   /* js/work.js meet de kaarten vanaf hier */
+  display: flex;
+  gap: 48px;
+  margin-top: auto;
+  margin-inline: calc(-1 * var(--margin));
+  padding-inline: calc((100vw - var(--card-width)) / 2);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.work-grid::-webkit-scrollbar {
+  display: none;
+}
+
+.card {
+  display: flex;
+  flex: 0 0 var(--card-width);
+  flex-direction: column;
+  gap: 16px;
+  scroll-snap-align: center;
+}
+
+/* De kaart in het midden is groot, de buren kleiner en vager.
+   De browser koppelt deze animatie zelf aan het scrollen van de rij (view timeline).
+   Dat draait buiten JavaScript om, op de grafische kaart: vloeiend, ook bij heel snel scrollen.
+   Het bereik loopt van één kaartbreedte rechts van het midden tot één kaartbreedte links ervan.
+   Oudere browsers slaan dit over, daar doet js/work.js het. */
+@supports (animation-timeline: view()) {
+  .card {
+    animation: card-focus linear both;
+    animation-timeline: view(inline);
+    animation-range:
+      cover calc(50% - var(--card-width))
+      cover calc(50% + var(--card-width));
+  }
+}
+
+@keyframes card-focus {
+  0%,
+  100% {
+    scale: 0.9;
+    opacity: 0.4;
+  }
+
+  50% {
+    scale: 1;
+    opacity: 1;
+  }
+}
+
+.card__image {
+  aspect-ratio: 3 / 2;
+}
+
+.card__title {
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.card__meta {
+  font-size: 16px;
+  color: var(--grey);
+}
+
+/* Onder de carrousel: de bolletjes met de hint eronder */
+.work-nav {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-top: 32px;
+  margin-bottom: auto;
+}
+
+.work-dots {
+  display: flex;
+}
+
+/* Het actieve bolletje wordt een streepje.
+   De padding maakt de knop groter om op te klikken, zonder dat je het ziet. */
+.work-dots__dot {
+  width: 22px;
+  height: 22px;
+  padding: 8px;
+  border: 0;
+  border-radius: 11px;
+  background: var(--black);
+  background-clip: content-box;
+  opacity: 0.2;
+  cursor: pointer;
+  transition: width 0.3s ease, opacity 0.3s ease;
+}
+
+.work-dots__dot.is-active {
+  width: 40px;
+  opacity: 1;
+}
+
+/* Hint "← SWIPE →": de pijltjes bewegen zacht heen en weer.
+   Zodra je naar een ander project gaat, zet JavaScript .is-hidden erop. */
+.work-hint {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  color: var(--grey);
+  transition: opacity 0.6s ease;
+}
+
+.work-hint.is-hidden {
+  opacity: 0;
+}
+
+.work-hint__arrow--left {
+  animation: hint-left 1.6s ease-in-out infinite;
+}
+
+.work-hint__arrow--right {
+  animation: hint-right 1.6s ease-in-out infinite;
+}
+
+@keyframes hint-left {
+  50% { translate: -4px 0; }
+}
+
+@keyframes hint-right {
+  50% { translate: 4px 0; }
+}
+
+/* Op een telefoon "SWIPE", met een muis "DRAG" */
+.work-hint__word--mouse {
+  display: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .work-hint__word--touch {
+    display: none;
+  }
+
+  .work-hint__word--mouse {
+    display: inline;
+  }
+
+  /* Met de muis kun je de carrousel slepen */
+  .work-grid {
+    cursor: grab;
+  }
+}
+
+/* Tijdens het slepen: geen vastklikken (dat doet JavaScript bij het loslaten) en geen tekst selecteren */
+.work-grid.is-dragging {
+  scroll-snap-type: none;
+  cursor: grabbing;
+  user-select: none;
+}
+
+.work-grid.is-dragging .card {
+  cursor: grabbing;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .work-hint__arrow--left,
+  .work-hint__arrow--right {
+    animation: none;
+  }
+}
+
+
+/* ==========================================================================
+   5. Projectpagina: één project groot, als case study
+   ========================================================================== */
+
+/* Voorkomt dat de Work pagina eronder scrolt terwijl een project open is */
+.no-scroll {
+  overflow: hidden;
+}
+
+/* Een wit scherm over de hele Work pagina */
+.project {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  overflow: hidden;
+  background: var(--white);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+/* Meteen zichtbaar bij openen, zodat het kruisje direct focus kan krijgen */
+.project.is-open {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.3s ease, visibility 0s;
+}
+
+/* Het project vult het scherm en scrolt zelf naar beneden.
+   Onderaan evenveel witruimte als links en rechts. */
+.project__page {
+  height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-bottom: var(--margin);
+}
+
+/* Teller op de plek van de nav, in dezelfde letter */
+.project__counter {
+  padding: var(--nav-top) var(--margin) 0;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+/* Kruisje: een zwarte cirkel die blijft staan terwijl je scrolt.
+   Zo zie je hem op wit, op tekst en op elke foto. */
+.project__close {
+  position: fixed;
+  top: calc(var(--nav-top) - 14px);
+  right: var(--margin);
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--black);
+  color: var(--white);
+  cursor: pointer;
+  outline: none;   /* geen rand of cirkel eromheen als hij focus krijgt */
+}
+
+/* Draaien als je muis erover gaat. Alleen op toestellen met een muis:
+   op een gsm staat het kruisje gewoon stil. */
+@media (hover: hover) {
+  .project__close {
+    transition: transform 0.2s ease;
+  }
+
+  .project__close:hover {
+    transform: rotate(90deg);
+  }
+}
+
+.project__close svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* Groot beeld bovenaan. Zo hoog dat de titel er nog net onder in beeld staat. */
+.project__hero {
+  height: max(320px, 100svh - 360px);
+  margin: 32px var(--margin) 0;
+  overflow: hidden;
+}
+
+.project__hero img,
+.case__gallery img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* De kopie van het beeld die bij openen en sluiten vliegt (zie js/project.js) */
+.project-ghost {
+  position: fixed;
+  z-index: 11;
+  margin: 0;
+  pointer-events: none;
+  transform-origin: 0 0;
+}
+
+.project__content {
+  padding: 48px var(--margin) 0;
+}
+
+.project__title {
+  font-size: 120px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+/* Info links, verhaal rechts, beelden eronder over de hele breedte */
+.project__case {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 120px 96px;
+  margin-top: 80px;
+}
+
+.case__info {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.case__info dt {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--grey);
+}
+
+.case__info dd {
+  margin-top: 6px;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+/* De eerste zin groot, de rest rustiger in het grijs */
+.case__story {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  font-size: 20px;
+  line-height: 1.5;
+  color: var(--grey);
+}
+
+.case__story p:first-child {
+  font-size: 32px;
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--black);
+}
+
+/* Beelden: het eerste breed, de rest per twee naast elkaar */
+.case__gallery {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-column: 1 / -1;
+  gap: 24px;
+}
+
+.case__gallery > * {
+  aspect-ratio: 3 / 2;
+  overflow: hidden;
+}
+
+.case__gallery > :first-child {
+  grid-column: 1 / -1;
+  aspect-ratio: 16 / 9;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .project,
+  .project__close {
+    transition: none;
+  }
+}
+
+
+/* ==========================================================================
+   6. Me: foto links, tekst rechts
+   ========================================================================== */
+
+.me {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 96px;
+}
+
+.me__photo {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 816 / 787;
+  object-fit: cover;   /* vult het kader, wat te veel is valt aan de randen weg */
+}
+
+.me__text {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.me__title {
+  font-size: 64px;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.me__intro {
+  font-size: 24px;
+  line-height: 1.5;
+}
+
+.me__info {
+  font-size: 20px;
+  line-height: 1.5;
+  color: var(--grey);
+}
+
+
+/* ==========================================================================
+   7. Contact: kop in het midden, info als footer onderaan
+   ========================================================================== */
+
+/* De pagina vult het hele scherm. Onderaan dezelfde ruimte als de nav bovenaan. */
+.page--contact {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: var(--nav-top);
+}
+
+.contact {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--content-top);
+  width: 100%;
+}
+
+/* margin-block: auto verdeelt de vrije ruimte gelijk boven en onder de kop.
+   Zo staat hij precies in het midden tussen de nav en de footer. */
+.contact__head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+  margin-block: auto;
+  text-align: center;
+}
+
+.contact__title {
+  font-size: min(120px, 15svh);   /* op een laag scherm iets kleiner, zodat alles past */
+  font-weight: 600;
+  line-height: 1;
+}
+
+.contact__mail {
+  font-size: min(48px, 6svh);
+  font-weight: 600;
+  text-decoration: underline;
+  /* De lijn net onder de staartjes van j en g, en zonder onderbrekingen.
+     Anders blijft er tussen @ en g een los stukje lijn over dat op een punt lijkt. */
+  text-underline-offset: 0.25em;
+  text-decoration-thickness: 0.06em;
+  text-decoration-skip-ink: none;
+}
+
+/* Footer: socials op één regel, daaronder locatie en beschikbaarheid in het grijs */
+.contact__footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+}
+
+.contact__socials {
+  display: flex;
+  gap: 32px;
+  margin-bottom: 12px;
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.contact__socials a:hover {
+  text-decoration: underline;
+}
+
+.contact__meta {
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--grey);
+}
+
+
+/* ==========================================================================
+   8. Overgangen tussen pagina's
+   ========================================================================== */
+
+/* Klik je naar een andere pagina, dan maakt de browser een foto van de oude en de nieuwe
+   pagina en animeert hij daartussen (View Transitions). Geen JavaScript nodig.
+   Browsers die dit nog niet kennen, wisselen gewoon zoals vroeger. */
+@view-transition {
+  navigation: auto;
+}
+
+/* Elk woord in de nav krijgt een eigen naam. Staat het op de nieuwe pagina ergens anders
+   of groter, dan vliegt het van de oude plek naar de nieuwe.
+   Zo krimpen de grote woorden van Home naar de nav bovenaan. */
+.nav a:nth-child(1) {
+  view-transition-name: nav-work;
+}
+
+.nav a:nth-child(2) {
+  view-transition-name: nav-me;
+}
+
+.nav a:nth-child(3) {
+  view-transition-name: nav-contact;
+}
+
+::view-transition-group(*) {
+  animation-duration: 0.5s;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* De rest van de pagina: de oude schuift snel een beetje omhoog en vervaagt,
+   daarna komt de nieuwe van iets lager in beeld. */
+::view-transition-old(root) {
+  animation: page-out 0.18s ease-out both;
+}
+
+/* Wacht tot de oude pagina bijna weg is, zo lopen ze niet door elkaar */
+::view-transition-new(root) {
+  animation: page-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both;
+}
+
+@keyframes page-out {
+  to {
+    opacity: 0;
+    translate: 0 -24px;
+  }
+}
+
+@keyframes page-in {
+  from {
+    opacity: 0;
+    translate: 0 32px;
+  }
+}
+
+/* Wie "minder beweging" aanzet, wisselt gewoon zonder animatie */
+@media (prefers-reduced-motion: reduce) {
+  @view-transition {
+    navigation: none;
+  }
+}
+
+
+/* ==========================================================================
+   9. Mobile: alles onder elkaar, kleinere maten
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  :root {
+    --margin: 24px;
+    --nav-top: 32px;
+    --content-top: 48px;
+  }
+
+  .nav {
+    column-gap: 32px;
+    font-size: 16px;
+  }
+
+  /* Home op mobile: de woorden onder elkaar */
+  .nav--home {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 29px;
+    font-size: 32px;
+  }
+
+  /* Work: smallere kaarten met staande beelden.
+     Is je scherm laag, dan wordt de kaart kleiner, zodat alles past zonder te scrollen.
+     300px is alles behalve het beeld: nav, titel, bolletjes en witruimte.
+     Het beeld is 4:5, dus de breedte is 0.8 keer de hoogte. */
+  .work-grid {
+    --card-width: min(78vw, (100svh - 300px) * 0.8);
+
+    gap: 16px;
+  }
+
+  .card {
+    gap: 12px;
+  }
+
+  .card__image {
+    aspect-ratio: 4 / 5;
+    font-size: 12px;
+  }
+
+  .card__title {
+    font-size: 20px;
+  }
+
+  .card__meta {
+    font-size: 14px;
+  }
+
+  .work-nav {
+    margin-top: 24px;
+  }
+
+  /* Projectpagina: staand beeld zoals de kaart, alles onder elkaar */
+  .project__counter {
+    font-size: 16px;
+  }
+
+  .project__close {
+    top: calc(var(--nav-top) - 12px);
+    right: var(--margin);
+    width: 44px;
+    height: 44px;
+  }
+
+  .project__close svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .project__hero {
+    height: auto;
+    margin-top: 24px;
+    aspect-ratio: 4 / 5;
+    font-size: 12px;
+  }
+
+  .project__content {
+    padding-top: 32px;
+  }
+
+  .project__title {
+    font-size: 48px;
+    line-height: 1.05;
+  }
+
+  .project__case {
+    grid-template-columns: 1fr;
+    gap: 40px;
+    margin-top: 32px;
+  }
+
+  .case__info {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  .case__info dd {
+    font-size: 16px;
+  }
+
+  .case__story {
+    gap: 16px;
+    font-size: 16px;
+  }
+
+  .case__story p:first-child {
+    font-size: 22px;
+  }
+
+  .case__gallery {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .case__gallery > :first-child {
+    aspect-ratio: 4 / 5;
+  }
+
+  .project__page {
+    padding-bottom: 64px;
+  }
+
+  /* Me */
+  .me {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .me__photo {
+    aspect-ratio: 354 / 400;
+  }
+
+  .me__text {
+    gap: 20px;
+  }
+
+  .me__title {
+    font-size: 36px;
+  }
+
+  .me__intro {
+    font-size: 18px;
+  }
+
+  .me__info {
+    font-size: 15px;
+  }
+
+  /* Contact: alles in het midden, net als de nav */
+  .contact {
+    text-align: center;
+  }
+
+  .contact__head {
+    gap: 24px;
+  }
+
+  .contact__title {
+    font-size: 48px;
+    line-height: 1.05;
+  }
+
+  .contact__mail {
+    font-size: 22px;
+  }
+
+  .contact__socials {
+    gap: 24px;
+    font-size: 16px;
+  }
+
+  .contact__meta {
+    font-size: 14px;
+  }
+}

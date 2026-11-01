@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact · Wouter</title>
+
+  <!-- Het lettertype staat in je eigen map: geen wachten op een andere server -->
+  <link rel="preload" href="fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="css/style.css">
+
+  <!-- Staat je muis op een nav link? Dan haalt de browser die pagina alvast op,
+       zodat de overgang meteen start als je klikt (Chrome, alleen via http zoals Live Server) -->
+  <script type="speculationrules">
+    { "prefetch": [{ "where": { "selector_matches": ".nav a" }, "eagerness": "moderate" }] }
+  </script>
+</head>
+<body>
+
+  <nav class="nav">
+    <a href="work.html">WORK</a>
+    <a href="me.html">ME</a>
+    <a href="contact.html" aria-current="page">CONTACT</a>
+  </nav>
+
+  <main class="page page--contact">
+    <section class="contact">
+
+      <div class="contact__head">
+        <h1 class="contact__title">Let’s work together.</h1>
+        <!-- Vul hier je echte e-mailadres in, op beide plekken -->
+        <a class="contact__mail" href="mailto:wouterjhdb@gmail.com">wouterjhdb@gmail.com</a>
+      </div>
+
+      <footer class="contact__footer">
+        <!-- Je profielen. target="_blank" opent ze in een nieuw tabblad, zo blijft je portfolio open. -->
+        <p class="contact__socials">
+          <a href="https://www.instagram.com/debeulewouter/" target="_blank" rel="noopener">Instagram</a>
+          <a href="https://www.linkedin.com/in/wouter-de-beule-013489438/" target="_blank" rel="noopener">LinkedIn</a>
+        </p>
+        <p class="contact__meta">Antwerp, Belgium</p>
+        <p class="contact__meta">Open to internships and freelance work</p>
+      </footer>
+
+    </section>
+  </main>
+
+</body>
+</html>

@@ -1,0 +1,7 @@
+# Bestanden die niet online horen
+
+# Mac maakt deze vanzelf aan in elke map
+.DS_Store
+
+# Notities voor Claude, niet voor bezoekers van je site
+CLAUDE.md
