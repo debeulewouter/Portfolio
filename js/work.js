@@ -3,7 +3,7 @@
 // Het scrollen zelf doet de browser (scroll-snap in de CSS). Dat voelt het meest natuurlijk,
 // met je trackpad op een laptop en met je vinger op een telefoon.
 //
-// Oneindig: vóór en na de echte projecten zetten we twee kopieën van alle projecten.
+// Oneindig (vanaf 3 projecten): vóór en na de echte projecten zetten we twee kopieën van alle projecten.
 // Zo staat links van het eerste project altijd het laatste, en kom je ook met een
 // harde veeg nooit aan het einde van de rij. Stopt het scrollen op een kopie,
 // dan springen we ongemerkt naar dezelfde kaart in het midden. Die ziet er precies
@@ -19,8 +19,9 @@
 //   - bij het laden schuiven de kaarten even op, en een hint toont dat je kunt vegen.
 
 const grid = document.querySelector('.work-grid');
-const originals = [...grid.querySelectorAll('.card')];
+const originals = [...grid.querySelectorAll('.card:not(.card--soon)')];
 const projectCount = originals.length;
+const soonCard = grid.querySelector('.card--soon');
 const dotsContainer = document.querySelector('.work-dots');
 const hint = document.querySelector('.work-hint');
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -29,7 +30,13 @@ const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').match
 // buiten JavaScript om. Dat blijft vloeiend, ook als je heel snel scrolt.
 const cssScales = CSS.supports('animation-timeline: view()');
 
-const COPIES = 2;                       // kopieën van de hele rij, links en ook rechts
+// Met 1 of 2 projecten zou je steeds dezelfde kaarten zien terugkomen.
+// Dan geen oneindige rij, maar de projecten met de "Coming soon" kaart erachter.
+// Vanaf 3 projecten wel oneindig, en dan hoort de "Coming soon" kaart er niet meer bij.
+const loops = projectCount >= 3;
+if (loops && soonCard) soonCard.remove();
+
+const COPIES = loops ? 2 : 0;           // kopieën van de hele rij, links en ook rechts
 const firstReal = projectCount * COPIES; // plaats van het eerste echte project in de rij
 
 let activeIndex = firstReal;  // welke kaart nu in het midden staat
@@ -71,7 +78,7 @@ for (let copy = 0; copy < COPIES; copy++) {
   originals.forEach((card, i) => grid.appendChild(makeClone(card, i)));
 }
 
-// Alle kaarten op een rij: kopieën, echte projecten, kopieën
+// Alle kaarten op een rij: kopieën, echte projecten, kopieën (of: projecten en "Coming soon")
 const allCards = [...grid.querySelectorAll('.card')];
 
 function measure() {
@@ -128,7 +135,7 @@ function scrollToCard(i) {
 // Staan we op een kopie? Spring dan naar dezelfde kaart tussen de echte projecten.
 // Niet tijdens het slepen: dan zou de kaart onder je muis wegspringen.
 function recenter() {
-  if (dragStartX !== null) return;
+  if (!loops || dragStartX !== null) return;
 
   const real = firstReal + (activeIndex % projectCount);
   if (real === activeIndex) return;
@@ -139,6 +146,9 @@ function recenter() {
 
 
 // ---------- Bolletjes maken: één per project ----------
+// Eén project? Dan zijn bolletjes zinloos en laten we ze weg.
+
+dotsContainer.hidden = projectCount < 2;
 
 const dots = originals.map((card, i) => {
   const dot = document.createElement('button');
@@ -181,14 +191,15 @@ function update() {
   }
 
   // Kopie of echt: het bolletje van hetzelfde project gaat aan. Alleen als het verandert.
-  const dot = activeIndex % projectCount;
+  // (Op de "Coming soon" kaart blijft het laatste project aan.)
+  const dot = Math.min(activeIndex, firstReal + projectCount - 1) % projectCount;
   if (dot !== activeDot) {
     dots.forEach((element, i) => element.classList.toggle('is-active', i === dot));
     activeDot = dot;
   }
 
-  // Naar een ander project gegaan? Dan weet je hoe het werkt: de hint mag weg.
-  if (activeIndex % projectCount !== 0) hint.classList.add('is-hidden');
+  // Naar een andere kaart gegaan? Dan weet je hoe het werkt: de hint mag weg.
+  if (activeIndex !== firstReal) hint.classList.add('is-hidden');
 }
 
 // Maximaal één update per beeldje van het scherm
@@ -291,7 +302,7 @@ grid.addEventListener('dragstart', (event) => event.preventDefault());
 // Alleen de kaarten die je ziet, de rest staat toch buiten beeld.
 
 if (!reduceMotion) {
-  allCards.slice(activeIndex - 2, activeIndex + 3).forEach((card) => {
+  allCards.slice(Math.max(0, activeIndex - 2), activeIndex + 3).forEach((card) => {
     card.animate(
       [
         { translate: '0 0' },

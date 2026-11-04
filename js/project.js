@@ -10,8 +10,8 @@
 // Let op: work.js en dit script delen dezelfde namen, daarom heten de variabelen
 // hier anders (projectCards in plaats van cards, enzovoort).
 
-// Alleen de echte projecten, niet de kopieën die js/work.js maakt voor de oneindige carrousel
-const projectCards = [...document.querySelectorAll('.card:not(.card--clone)')];
+// Alleen de echte projecten, niet de kopieën van js/work.js en niet de "Coming soon" kaart
+const projectCards = [...document.querySelectorAll('.card:not(.card--clone):not(.card--soon)')];
 const projectTotal = projectCards.length;
 
 const view = document.querySelector('.project');
@@ -44,7 +44,7 @@ function imageOnScreen(i) {
     return Math.abs(rect.left + rect.width / 2 - middle);
   };
 
-  return [...document.querySelectorAll('.work-grid .card')]
+  return [...document.querySelectorAll('.work-grid .card:not(.card--soon)')]
     .filter((card, k) => k % projectTotal === i)
     .map((card) => card.querySelector('.card__image'))
     .sort((a, b) => distance(a) - distance(b))[0];

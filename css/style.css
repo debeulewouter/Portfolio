@@ -220,6 +220,19 @@ button {
   color: var(--grey);
 }
 
+/* "Coming soon": ziet eruit als een kaart, maar je kunt hem niet openen */
+.card--soon {
+  cursor: default;
+}
+
+.card--soon .card__image {
+  letter-spacing: 0.12em;
+}
+
+.card--soon .card__title {
+  color: var(--grey);
+}
+
 /* Onder de carrousel: de bolletjes met de hint eronder */
 .work-nav {
   display: flex;
@@ -232,6 +245,11 @@ button {
 
 .work-dots {
   display: flex;
+}
+
+/* Maar één project: geen bolletjes (zie js/work.js) */
+.work-dots[hidden] {
+  display: none;
 }
 
 /* Het actieve bolletje wordt een streepje.
