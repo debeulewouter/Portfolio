@@ -7,7 +7,7 @@
 
   <!-- Het lettertype staat in je eigen map: geen wachten op een andere server -->
   <link rel="preload" href="fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="css/style.css?v=2026-11-04">
+  <link rel="stylesheet" href="css/style.css?v=2026-11-04c">
 
   <!-- Staat je muis op een nav link? Dan haalt de browser die pagina alvast op,
        zodat de overgang meteen start als je klikt (Chrome, alleen via http zoals Live Server) -->
@@ -55,16 +55,12 @@
 
     </section>
 
-    <!-- Onder de carrousel: de bolletjes (gemaakt door js/work.js) en een hint dat je kunt vegen -->
+    <!-- Onder de carrousel: de bolletjes (gemaakt door js/work.js) en een lijntje dat toont dat je kunt vegen -->
     <div class="work-nav">
       <div class="work-dots"></div>
 
-      <p class="work-hint" aria-hidden="true">
-        <span class="work-hint__arrow work-hint__arrow--left">←</span>
-        <span class="work-hint__word work-hint__word--touch">SWIPE</span>
-        <span class="work-hint__word work-hint__word--mouse">DRAG</span>
-        <span class="work-hint__arrow work-hint__arrow--right">→</span>
-      </p>
+      <!-- Een dun lijntje met een streepje dat heen en weer glijdt: je kunt opzij schuiven -->
+      <div class="work-hint" aria-hidden="true"></div>
     </div>
   </main>
 
@@ -93,8 +89,8 @@
 
   </div>
 
-  <script src="js/work.js?v=2026-11-04"></script>
-  <script src="js/project.js?v=2026-11-04"></script>
+  <script src="js/work.js?v=2026-11-04c"></script>
+  <script src="js/project.js?v=2026-11-04c"></script>
 
 </body>
 </html>

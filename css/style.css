@@ -272,16 +272,15 @@ button {
   opacity: 1;
 }
 
-/* Hint "← SWIPE →": de pijltjes bewegen zacht heen en weer.
-   Zodra je naar een ander project gaat, zet JavaScript .is-hidden erop. */
+/* Hint dat je opzij kunt schuiven: een dun grijs lijntje met een zwart streepje dat heen en weer glijdt.
+   Zodra je naar een andere kaart gaat, zet JavaScript .is-hidden erop. */
 .work-hint {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.12em;
-  color: var(--grey);
+  position: relative;
+  width: 48px;
+  height: 2px;
+  margin-top: 12px;
+  overflow: hidden;
+  background: var(--line);
   transition: opacity 0.6s ease;
 }
 
@@ -289,36 +288,23 @@ button {
   opacity: 0;
 }
 
-.work-hint__arrow--left {
-  animation: hint-left 1.6s ease-in-out infinite;
+/* Het zwarte streepje: een derde van het lijntje, glijdt rustig van links naar rechts en terug */
+.work-hint::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 16px;
+  background: var(--black);
+  animation: hint-slide 1.6s ease-in-out infinite alternate;
 }
 
-.work-hint__arrow--right {
-  animation: hint-right 1.6s ease-in-out infinite;
-}
-
-@keyframes hint-left {
-  50% { translate: -4px 0; }
-}
-
-@keyframes hint-right {
-  50% { translate: 4px 0; }
-}
-
-/* Op een telefoon "SWIPE", met een muis "DRAG" */
-.work-hint__word--mouse {
-  display: none;
+@keyframes hint-slide {
+  to {
+    translate: 32px 0;
+  }
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .work-hint__word--touch {
-    display: none;
-  }
-
-  .work-hint__word--mouse {
-    display: inline;
-  }
-
   /* Met de muis kun je de carrousel slepen */
   .work-grid {
     cursor: grab;
@@ -337,8 +323,9 @@ button {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .work-hint__arrow--left,
-  .work-hint__arrow--right {
+  /* Minder beweging: het streepje staat stil in het midden */
+  .work-hint::after {
+    left: 16px;
     animation: none;
   }
 }
@@ -593,12 +580,6 @@ body:has(.page--me) {
   line-height: 1.5;
 }
 
-.me__info {
-  font-size: 20px;
-  line-height: 1.5;
-  color: var(--grey);
-}
-
 
 /* ==========================================================================
    7. Contact: kop in het midden, info als footer onderaan
@@ -749,6 +730,20 @@ body:has(.page--me) {
   .project {
     --margin: 48px;
   }
+
+  /* Me: minder ruimte tussen foto en tekst, en iets kleinere tekst,
+     zodat de tekst niet hoger wordt dan de foto */
+  .me {
+    gap: 48px;
+  }
+
+  .me__title {
+    font-size: 48px;
+  }
+
+  .me__intro {
+    font-size: 20px;
+  }
 }
 
 @media (max-width: 768px) {
@@ -884,6 +879,7 @@ body:has(.page--me) {
   .me {
     display: flex;
     flex-direction: column;
+    justify-content: center;   /* op een hoge gsm: foto en tekst samen in het midden */
     gap: 32px;
   }
 
@@ -905,10 +901,6 @@ body:has(.page--me) {
 
   .me__intro {
     font-size: 18px;
-  }
-
-  .me__info {
-    font-size: 15px;
   }
 
   /* Contact: alles in het midden, net als de nav */
@@ -1077,10 +1069,6 @@ body:has(.page--me) {
 
   .me__intro {
     font-size: 14px;
-  }
-
-  .me__info {
-    font-size: 13px;
   }
 
   /* Contact */
