@@ -16,9 +16,11 @@ const projectTotal = projectCards.length;
 
 const view = document.querySelector('.project');
 const viewClose = view.querySelector('.project__close');
+const viewSound = view.querySelector('.project__sound');
 const viewPage = view.querySelector('.project__page');
 const viewHero = view.querySelector('.project__hero');
 const viewContent = view.querySelector('.project__content');
+const viewIntro = view.querySelector('.project__intro');
 // Op een gsm en een staande tablet staan beeld en tekst onder elkaar.
 // Liggend (laag scherm) staan ze naast elkaar, zoals op de computer.
 const phone = window.matchMedia('(max-width: 768px) and (not ((max-height: 560px) and (orientation: landscape))), (max-width: 1200px) and (orientation: portrait)');
@@ -104,7 +106,16 @@ function fill(i) {
   const imageContent = [...card.querySelector('.card__image').childNodes];
   viewHero.replaceChildren(...imageContent.map((node) => node.cloneNode(true)));
   viewHero.classList.toggle('placeholder', card.querySelector('.card__image').classList.contains('placeholder'));
-  viewHero.classList.toggle('project__hero--square', Boolean(viewHero.querySelector('video')));
+  const hasVideo = Boolean(viewHero.querySelector('video'));
+  viewHero.classList.toggle('project__hero--square', hasVideo);
+  // Een video kun je aanklikken om hem groot te bekijken (zie "Video groot bekijken")
+  if (hasVideo) {
+    viewHero.setAttribute('role', 'button');
+    viewHero.setAttribute('tabindex', '0');
+    viewHero.setAttribute('aria-label', 'Enlarge video');
+  } else {
+    ['role', 'tabindex', 'aria-label'].forEach((name) => viewHero.removeAttribute(name));
+  }
 
   // Foto's uitpakken buiten het tekenen om, zodat een beeld nooit een beweging ophoudt
   viewPage.querySelectorAll('img').forEach((image) => {
@@ -200,19 +211,22 @@ function reveal() {
 // ---------- De tekst laten passen ----------
 
 // De tekst mag nooit langer zijn dan het beeld (computer) en nooit van het scherm lopen (gsm).
-// Past hij niet, dan maken we alle tekst samen een beetje kleiner tot hij wel past.
-// Zo blijft de indeling hetzelfde, hoe lang je verhaal ook is en op elk scherm.
+// Past hij niet, dan maken we het BEELD kleiner, nooit de tekst: kleine tekst is slecht leesbaar.
+// Zo blijft de tekst altijd even groot, hoe lang je verhaal ook is en op elk scherm.
 // Dit meet de pagina, dus het gebeurt alleen bij openen en als je het venster groter of kleiner maakt.
+function pageFits() {
+  return viewPage.scrollHeight <= viewPage.clientHeight;
+}
+
 function textFits() {
-  if (viewPage.scrollHeight > viewPage.clientHeight) return false;
   // Op de computer staat de tekst naast het beeld: hij mag niet hoger zijn
-  return phone.matches || viewContent.offsetHeight <= viewHero.offsetHeight + 1;
+  return pageFits() && (phone.matches || viewContent.offsetHeight <= viewHero.offsetHeight + 1);
 }
 
 function fitText() {
   // Tijdens het meten geen scrollbalk: die neemt breedte in en zou de tekst anders laten afbreken
   viewPage.style.overflowY = 'hidden';
-  viewContent.style.setProperty('--text-scale', 1);
+  viewIntro.style.setProperty('--hero-scale', 1);
 
   // Info (Role, Year, Tools): eerst als één rij proberen. Te breed? Dan onder elkaar.
   const info = viewPage.querySelector('.case__info');
@@ -221,25 +235,38 @@ function fitText() {
     if (info.scrollWidth > info.clientWidth + 1) info.classList.add('is-stacked');
   }
 
-  if (!textFits()) shrinkText();
+  // Lukt "niet hoger dan het beeld" niet (een heel laag scherm), dan is niet scrollen genoeg.
+  // Lukt ook dat niet (de allerkleinste schermen), dan scrolt de pagina een klein beetje:
+  // liever dat dan te kleine tekst. Op de gsm blijft het beeld dan heel (geen smalle strook);
+  // naast de tekst blijft het klein, zodat de tekst zo breed mogelijk is.
+  if (!textFits() && !shrinkHero(textFits)) {
+    viewIntro.style.setProperty('--hero-scale', 1);
+    if (!pageFits() && !shrinkHero(pageFits)) viewIntro.style.setProperty('--hero-scale', phone.matches ? 1 : 0.6);
+  }
   viewPage.style.overflowY = '';
 }
 
-function shrinkText() {
-  // Zoek de grootste schaal tussen 0.75 en 1 die past (een paar keer halveren is genoeg)
-  let small = 0.75;
+// Zoek het grootste beeld tussen 60% en 100% waarbij fits() klopt (een paar keer halveren is genoeg).
+// Kleiner dan 60% maken we het beeld nooit. Geeft terug of het gelukt is.
+function shrinkHero(fits) {
+  let small = 0.6;
   let big = 1;
-  for (let step = 0; step < 5; step++) {
+  viewIntro.style.setProperty('--hero-scale', small);
+  if (!fits()) return false;
+  for (let step = 0; step < 6; step++) {
     const middle = (small + big) / 2;
-    viewContent.style.setProperty('--text-scale', middle);
-    if (textFits()) small = middle;
+    viewIntro.style.setProperty('--hero-scale', middle);
+    if (fits()) small = middle;
     else big = middle;
   }
-  viewContent.style.setProperty('--text-scale', small);
+  viewIntro.style.setProperty('--hero-scale', small);
+  return true;
 }
 
 let fitFrame = null;
 window.addEventListener('resize', () => {
+  const zoomVideo = zoomLayer.querySelector('video');
+  if (zoomVideo && isZoomed()) placeZoomVideo(zoomVideo);
   if (!view.classList.contains('is-open') || fitFrame) return;
   fitFrame = requestAnimationFrame(() => {
     fitFrame = null;
@@ -294,6 +321,134 @@ function closeProject() {
 }
 
 
+// ---------- Video groot bekijken ----------
+
+// Klik op de video in het project: hij groeit tot hij het scherm vult (helemaal zichtbaar,
+// niet bijgesneden) en de rest van de pagina vervaagt. Klik nog eens (of Esc) en hij krimpt terug.
+//
+// We verhuizen de echte video naar een laag boven de pagina (.project-zoom), zodat hij gewoon
+// verder speelt. De beweging is weer alleen schalen en bijsnijden, zoals bij flyHero.
+const zoomLayer = document.createElement('div');
+zoomLayer.className = 'project-zoom';
+zoomLayer.hidden = true;
+zoomLayer.tabIndex = -1;   // zodat hij focus kan krijgen (voor Esc en schermlezers)
+view.append(zoomLayer);
+
+let zoomAnimation = null;
+
+function isZoomed() {
+  return view.classList.contains('is-zoomed');
+}
+
+// De grote maat: zo groot mogelijk op het scherm, met wat witruimte rond, in de vorm van de video
+function zoomRect(video) {
+  const space = window.innerWidth <= 768 ? 16 : 48;
+  const ratio = (video.videoWidth || video.width) / (video.videoHeight || video.height);
+  const width = Math.min(window.innerWidth - 2 * space, (window.innerHeight - 2 * space) * ratio);
+  const height = width / ratio;
+  return {
+    left: (window.innerWidth - width) / 2,
+    top: (window.innerHeight - height) / 2,
+    width,
+    height,
+  };
+}
+
+function placeZoomVideo(video) {
+  const big = zoomRect(video);
+  Object.assign(video.style, {
+    left: `${big.left}px`,
+    top: `${big.top}px`,
+    width: `${big.width}px`,
+    height: `${big.height}px`,
+  });
+  return big;
+}
+
+// Transform en bijsnijden waarmee de grote video er precies uitziet als het kleine beeld in het project
+function heroLook(big, hero) {
+  const scale = Math.max(hero.width / big.width, hero.height / big.height);
+  const clipX = (big.width - hero.width / scale) / 2;
+  const clipY = (big.height - hero.height / scale) / 2;
+  return {
+    transform: `translate(${hero.left + hero.width / 2 - big.left - (scale * big.width) / 2}px, ${hero.top + hero.height / 2 - big.top - (scale * big.height) / 2}px) scale(${scale})`,
+    clipPath: `inset(${clipY}px ${clipX}px)`,
+  };
+}
+
+// Geluid aan of uit. Geluid kan alleen in de grote weergave; terug in het project is hij altijd stil.
+function setSound(on) {
+  const video = zoomLayer.querySelector('video');
+  if (video) video.muted = !on;
+  viewSound.setAttribute('aria-pressed', String(on));
+}
+
+viewSound.addEventListener('click', () => {
+  setSound(viewSound.getAttribute('aria-pressed') !== 'true');
+});
+
+// Heeft de video een geluidsspoor? Elke browser vertelt dat op zijn eigen manier.
+function hasAudio(video) {
+  if (video.audioTracks) return video.audioTracks.length > 0;             // Safari
+  if (video.mozHasAudio !== undefined) return video.mozHasAudio;          // Firefox
+  return video.webkitAudioDecodedByteCount > 0;                           // Chrome
+}
+
+function keepPlaying(video) {
+  if (!lessMotion) video.play().catch(() => {});
+}
+
+function zoomIn() {
+  const video = viewHero.querySelector('video');
+  if (!video || isZoomed()) return;
+  zoomAnimation?.finish();
+
+  const hero = viewHero.getBoundingClientRect();
+  zoomLayer.hidden = false;
+  zoomLayer.append(video);   // verhuizen pauzeert een video, dus meteen weer starten
+  keepPlaying(video);
+  const big = placeZoomVideo(video);
+  // Geluidsknop alleen bij een video die geluid heeft
+  view.classList.toggle('has-sound', hasAudio(video));
+  view.classList.add('is-zoomed');
+  zoomLayer.focus({ preventScroll: true });
+
+  if (lessMotion) return;
+  zoomAnimation = video.animate(
+    [heroLook(big, hero), { transform: 'none', clipPath: 'inset(0px 0px)' }],
+    { duration: 600, easing: EASE }
+  );
+}
+
+function zoomOut() {
+  if (!isZoomed()) return;
+  const video = zoomLayer.querySelector('video');
+  zoomAnimation?.finish();
+  setSound(false);
+  view.classList.remove('is-zoomed');
+
+  const putBack = () => {
+    zoomAnimation = null;
+    video.getAnimations().forEach((animation) => animation.cancel());
+    video.removeAttribute('style');
+    viewHero.append(video);
+    keepPlaying(video);
+    zoomLayer.hidden = true;
+    viewHero.focus({ preventScroll: true });
+  };
+  if (lessMotion) return putBack();
+
+  const big = zoomRect(video);
+  zoomAnimation = video.animate(
+    [{ transform: 'none', clipPath: 'inset(0px 0px)' }, heroLook(big, viewHero.getBoundingClientRect())],
+    { duration: 500, easing: EASE, fill: 'forwards' }
+  );
+  zoomAnimation.onfinish = putBack;
+}
+
+zoomLayer.addEventListener('click', zoomOut);
+
+
 // ---------- Klikken en toetsen ----------
 
 projectCards.forEach((card, i) => {
@@ -305,7 +460,18 @@ projectCards.forEach((card, i) => {
 
 viewClose.addEventListener('click', closeProject);
 
-// Esc sluit
+viewHero.addEventListener('click', zoomIn);
+// Met het toetsenbord: Enter of spatie op de video
+viewHero.addEventListener('keydown', (event) => {
+  if (event.key === 'Enter' || event.key === ' ') {
+    event.preventDefault();
+    zoomIn();
+  }
+});
+
+// Esc: eerst de grote video terug, nog eens Esc sluit het project
 document.addEventListener('keydown', (event) => {
-  if (event.key === 'Escape' && view.classList.contains('is-open')) closeProject();
+  if (event.key !== 'Escape' || !view.classList.contains('is-open')) return;
+  if (isZoomed()) zoomOut();
+  else closeProject();
 });
