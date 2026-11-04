@@ -19,8 +19,9 @@ const viewClose = view.querySelector('.project__close');
 const viewPage = view.querySelector('.project__page');
 const viewHero = view.querySelector('.project__hero');
 const viewContent = view.querySelector('.project__content');
-// Op een gsm staan beeld en tekst onder elkaar. Liggend (laag scherm) staan ze naast elkaar, zoals op de computer.
-const phone = window.matchMedia('(max-width: 768px) and (not ((max-height: 560px) and (orientation: landscape)))');
+// Op een gsm en een staande tablet staan beeld en tekst onder elkaar.
+// Liggend (laag scherm) staan ze naast elkaar, zoals op de computer.
+const phone = window.matchMedia('(max-width: 768px) and (not ((max-height: 560px) and (orientation: landscape))), (max-width: 1200px) and (orientation: portrait)');
 
 const lessMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)';   // snel vertrekken, zacht landen
@@ -212,6 +213,14 @@ function fitText() {
   // Tijdens het meten geen scrollbalk: die neemt breedte in en zou de tekst anders laten afbreken
   viewPage.style.overflowY = 'hidden';
   viewContent.style.setProperty('--text-scale', 1);
+
+  // Info (Role, Year, Tools): eerst als één rij proberen. Te breed? Dan onder elkaar.
+  const info = viewPage.querySelector('.case__info');
+  if (info) {
+    info.classList.remove('is-stacked');
+    if (info.scrollWidth > info.clientWidth + 1) info.classList.add('is-stacked');
+  }
+
   if (!textFits()) shrinkText();
   viewPage.style.overflowY = '';
 }

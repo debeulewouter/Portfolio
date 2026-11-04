@@ -462,13 +462,14 @@ button {
   transform-origin: 0 0;
 }
 
-/* Rechterkolom: titel en verhaal bovenaan, info onderaan, op één lijn met het beeld.
+/* Rechterkolom: titel, verhaal en info, samen verticaal in het midden naast het beeld.
    --text-scale maakt alle tekst in deze kolom samen kleiner. js/project.js zet hem lager
    als de tekst anders hoger zou worden dan het beeld (1 = normaal, 0.75 = het kleinste, kleiner wordt slecht leesbaar). */
 .project__content {
   --text-scale: 1;
   display: flex;
   flex-direction: column;
+  align-self: center;
   min-width: 0;
 }
 
@@ -487,13 +488,10 @@ button {
   margin-top: calc(clamp(20px, 3.5svh, 40px) * var(--text-scale));
 }
 
-/* De info: kolommen naast elkaar, een klein grijs label met de waarde eronder.
-   Geen lijnen. Altijd op één rij: is er niet genoeg plaats, dan loopt een waarde over twee regels. */
+/* De info: kolommen naast elkaar, een klein grijs label met de waarde eronder. Geen lijnen.
+   Past die rij niet in de breedte, dan zet js/project.js er .is-stacked op (zie hieronder). */
 .case__info {
-  display: grid;
-  grid-auto-columns: auto;
-  grid-auto-flow: column;
-  justify-content: start;
+  display: flex;
   order: 1;
   gap: calc(clamp(12px, 2svh, 20px) * var(--text-scale)) calc(clamp(24px, 3vw, 56px) * var(--text-scale));
 }
@@ -512,7 +510,26 @@ button {
 .case__info dd {
   font-size: calc(clamp(15px, 1.7svh, 18px) * var(--text-scale));
   font-weight: 500;
-  text-wrap: balance;   /* moet het toch afbreken, dan twee even lange regels */
+  white-space: nowrap;   /* een waarde breekt nooit af in een kolom */
+}
+
+/* Te smal voor één rij: dan onder elkaar, label links en waarde rechts op dezelfde lijn */
+.case__info.is-stacked {
+  flex-direction: column;
+}
+
+.case__info.is-stacked > div {
+  flex-direction: row;
+  align-items: baseline;
+  gap: 16px;
+}
+
+.case__info.is-stacked dt {
+  flex: 0 0 3.5em;
+}
+
+.case__info.is-stacked dd {
+  white-space: normal;
 }
 
 /* De eerste zin groot, de rest rustiger in het grijs */
@@ -1143,8 +1160,25 @@ body:has(.page--me) {
 }
 
 /* Staande tablet: naast elkaar worden de kolommen te smal,
-   dus foto boven en tekst eronder, samen in het midden */
+   dus foto boven en tekst eronder, samen in het midden.
+   Ook op de projectpagina: het beeld over de hele breedte bovenaan, de tekst eronder
+   (zo blijft de onderste helft van het scherm niet leeg). */
 @media (min-width: 769px) and (max-width: 1200px) and (orientation: portrait) {
+  .project__intro {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 40px;
+  }
+
+  .project__hero,
+  .project__hero--square {
+    aspect-ratio: auto;
+    height: min(100vw - 2 * var(--margin), max(200px, 100svh - 2 * var(--nav-top) - 64px - 380px));
+  }
+
+  .project__content {
+    align-self: start;
+  }
+
   .me {
     display: flex;
     flex-direction: column;
