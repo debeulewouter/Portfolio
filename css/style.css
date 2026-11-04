@@ -544,16 +544,34 @@ button {
    6. Me: foto links, tekst rechts
    ========================================================================== */
 
-.me {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  align-items: center;
-  gap: 96px;
+/* Ook Me past op het scherm zonder scrollen: de pagina is precies zo hoog als het scherm,
+   en de foto krijgt de plaats die overblijft onder de nav. */
+body:has(.page--me) {
+  height: 100svh;
 }
 
+.page--me {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.me {
+  display: grid;
+  flex: 1;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: minmax(0, 1fr);
+  align-items: center;
+  gap: 96px;
+  min-height: 0;
+}
+
+/* De foto is nooit hoger dan de plaats die er is.
+   Is het scherm laag, dan wordt het kader iets breder dan hoog en valt er wat van de foto weg. */
 .me__photo {
   width: 100%;
   height: auto;
+  max-height: 100%;
   aspect-ratio: 816 / 787;
   object-fit: cover;   /* vult het kader, wat te veel is valt aan de randen weg */
 }
@@ -607,7 +625,7 @@ button {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 40px;
+  gap: min(40px, 4svh);
   margin-block: auto;
   text-align: center;
 }
@@ -815,12 +833,12 @@ button {
 
   .project__hero {
     aspect-ratio: auto;
-    height: min((100vw - 2 * var(--margin)) * 1.25, max(160px, 100svh - 380px));
+    height: min((100vw - 2 * var(--margin)) * 1.25, max(120px, 100svh - 380px));
     font-size: 12px;
   }
 
   .project__hero--square {
-    height: min(100vw - 2 * var(--margin), max(160px, 100svh - 380px));
+    height: min(100vw - 2 * var(--margin), max(120px, 100svh - 380px));
   }
 
   .project__title {
@@ -861,17 +879,23 @@ button {
     padding-bottom: var(--margin);
   }
 
-  /* Me */
+  /* Me: foto boven, tekst eronder. De tekst krijgt altijd zijn plaats,
+     de foto krimpt in de hoogte tot alles op het scherm past. */
   .me {
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
     gap: 32px;
   }
 
   .me__photo {
+    flex: 0 1 auto;
+    min-height: 0;
+    max-height: none;
     aspect-ratio: 354 / 400;
   }
 
   .me__text {
+    flex-shrink: 0;
     gap: 20px;
   }
 
@@ -912,5 +936,173 @@ button {
 
   .contact__meta {
     font-size: 14px;
+  }
+}
+
+
+/* ==========================================================================
+   10. Lage schermen: een gsm die je liggend houdt, of een laag browservenster
+   Er is weinig hoogte, dus alles compacter, en beeld en tekst naast elkaar
+   in plaats van onder elkaar. Zo past elke pagina nog zonder scrollen.
+   ========================================================================== */
+
+@media (max-height: 560px) and (orientation: landscape) {
+  :root {
+    --margin: 32px;
+    --nav-top: 20px;
+    --content-top: 16px;
+  }
+
+  .nav {
+    column-gap: 32px;
+    font-size: 16px;
+  }
+
+  /* Work: liggende beelden (3:2). 190px is alles behalve het beeld:
+     nav, titel, bolletjes, hint en witruimte. */
+  .work-grid {
+    --card-width: min(60vw, (100svh - 190px) * 1.5);
+
+    gap: 16px;
+  }
+
+  .card {
+    gap: 8px;
+  }
+
+  .card__image {
+    aspect-ratio: 3 / 2;
+  }
+
+  .card__title {
+    font-size: 16px;
+  }
+
+  .card__meta {
+    font-size: 13px;
+  }
+
+  .work-nav {
+    margin-top: 12px;
+  }
+
+  /* Projectpagina: het vierkante beeld links, de tekst rechts */
+  .project__counter {
+    font-size: 16px;
+  }
+
+  .project__close {
+    top: calc(var(--nav-top) - 12px);
+    width: 40px;
+    height: 40px;
+  }
+
+  .project__close svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .project__intro {
+    --hero-size: min(100svh - 2 * var(--nav-top) - 40px, (100vw - 2 * var(--margin)) * 0.45);
+    grid-template-columns: var(--hero-size) minmax(0, 1fr);
+    gap: 32px;
+    padding-top: 12px;
+  }
+
+  .project__hero,
+  .project__hero--square {
+    aspect-ratio: 1 / 1;
+    height: auto;
+  }
+
+  .project__page {
+    padding-bottom: var(--nav-top);
+  }
+
+  .project__title {
+    font-size: calc(26px * var(--text-scale));
+  }
+
+  .project__case {
+    gap: calc(12px * var(--text-scale));
+    margin-top: calc(8px * var(--text-scale));
+  }
+
+  .case__info > div {
+    gap: 12px;
+    padding: calc(6px * var(--text-scale)) 0;
+  }
+
+  .case__info dt {
+    font-size: 10px;
+  }
+
+  .case__info dd {
+    font-size: calc(13px * var(--text-scale));
+  }
+
+  .case__story {
+    gap: calc(6px * var(--text-scale));
+    font-size: calc(13px * var(--text-scale));
+  }
+
+  .case__story p:first-child {
+    font-size: calc(15px * var(--text-scale));
+  }
+
+  /* Me: foto links, tekst rechts */
+  .page--me {
+    padding-bottom: var(--nav-top);
+  }
+
+  .me {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    grid-template-rows: minmax(0, 1fr);
+    gap: 32px;
+  }
+
+  .me__photo {
+    max-height: 100%;
+    aspect-ratio: 1 / 1;
+  }
+
+  .me__text {
+    gap: 12px;
+  }
+
+  .me__title {
+    font-size: 26px;
+  }
+
+  .me__intro {
+    font-size: 14px;
+  }
+
+  .me__info {
+    font-size: 13px;
+  }
+
+  /* Contact */
+  .contact__head {
+    gap: 12px;
+  }
+
+  .contact__title {
+    font-size: min(48px, 12svh);
+  }
+
+  .contact__mail {
+    font-size: min(22px, 6svh);
+  }
+
+  .contact__socials {
+    gap: 24px;
+    margin-bottom: 4px;
+    font-size: 15px;
+  }
+
+  .contact__meta {
+    font-size: 13px;
   }
 }

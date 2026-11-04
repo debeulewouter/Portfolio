@@ -19,7 +19,8 @@ const viewClose = view.querySelector('.project__close');
 const viewPage = view.querySelector('.project__page');
 const viewHero = view.querySelector('.project__hero');
 const viewContent = view.querySelector('.project__content');
-const phone = window.matchMedia('(max-width: 768px)');
+// Op een gsm staan beeld en tekst onder elkaar. Liggend (laag scherm) staan ze naast elkaar, zoals op de computer.
+const phone = window.matchMedia('(max-width: 768px) and (not ((max-height: 560px) and (orientation: landscape)))');
 
 const lessMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)';   // snel vertrekken, zacht landen

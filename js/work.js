@@ -63,7 +63,7 @@ function makeClone(card, i) {
   clone.classList.add('card--clone');
   clone.setAttribute('aria-hidden', 'true');   // schermlezers lezen elk project maar één keer
   clone.tabIndex = -1;                         // met Tab sla je de kopieën over
-  clone.querySelector('.card__case').remove(); // de projectpagina leest alleen de echte kaarten
+  clone.querySelector('.card__case')?.remove(); // de projectpagina leest alleen de echte kaarten
 
   // Klik op een kopie: open het echte project
   clone.addEventListener('click', (event) => {
