@@ -1,7 +1,7 @@
 // Projectpagina op de Work pagina.
 //
 // Klik je op een project, dan groeit het beeld uit de carrousel uit tot een eigen pagina:
-// groot beeld, titel, info, je verhaal en meer beelden.
+// groot beeld met daarnaast de titel, je verhaal en de info.
 // Sluit je (kruisje of Esc), dan krimpt het beeld terug naar zijn kaart.
 //
 // Alle inhoud komt uit de kaarten in work.html (de verborgen .card__case),
@@ -18,6 +18,8 @@ const view = document.querySelector('.project');
 const viewClose = view.querySelector('.project__close');
 const viewPage = view.querySelector('.project__page');
 const viewHero = view.querySelector('.project__hero');
+const viewContent = view.querySelector('.project__content');
+const phone = window.matchMedia('(max-width: 768px)');
 
 const lessMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)';   // snel vertrekken, zacht landen
@@ -94,8 +96,6 @@ function fill(i) {
   viewPage.querySelector('.project__title').textContent = card.querySelector('.card__title').textContent;
   const caseContent = viewPage.querySelector('.project__case');
   caseContent.innerHTML = card.querySelector('.card__case').innerHTML;
-  // De beelden staan onder de video en de tekst, over de hele breedte
-  viewPage.querySelector('.project__gallery').replaceChildren(caseContent.querySelector('.case__gallery'));
   view.setAttribute('aria-label', card.querySelector('.card__title').textContent);
 
   // Het grote beeld: een kopie van wat in de kaart staat (foto, of de grijze placeholder)
@@ -180,9 +180,9 @@ function flyHero(from, to, cardImage) {
   flight.onfinish = landHero;
 }
 
-// Teller, titel, tekst en beelden schuiven na elkaar omhoog in beeld
+// Teller, titel en tekst schuiven na elkaar omhoog in beeld
 function reveal() {
-  ['.project__counter', '.project__title', '.project__case', '.project__gallery'].forEach((selector, k) => {
+  ['.project__counter', '.project__title', '.project__case'].forEach((selector, k) => {
     viewPage.querySelector(selector).animate(
       [
         { opacity: 0, translate: '0 24px' },
@@ -195,11 +195,55 @@ function reveal() {
 }
 
 
+// ---------- De tekst laten passen ----------
+
+// De tekst mag nooit langer zijn dan het beeld (computer) en nooit van het scherm lopen (gsm).
+// Past hij niet, dan maken we alle tekst samen een beetje kleiner tot hij wel past.
+// Zo blijft de indeling hetzelfde, hoe lang je verhaal ook is en op elk scherm.
+// Dit meet de pagina, dus het gebeurt alleen bij openen en als je het venster groter of kleiner maakt.
+function textFits() {
+  if (viewPage.scrollHeight > viewPage.clientHeight) return false;
+  // Op de computer staat de tekst naast het beeld: hij mag niet hoger zijn
+  return phone.matches || viewContent.offsetHeight <= viewHero.offsetHeight + 1;
+}
+
+function fitText() {
+  // Tijdens het meten geen scrollbalk: die neemt breedte in en zou de tekst anders laten afbreken
+  viewPage.style.overflowY = 'hidden';
+  viewContent.style.setProperty('--text-scale', 1);
+  if (!textFits()) shrinkText();
+  viewPage.style.overflowY = '';
+}
+
+function shrinkText() {
+  // Zoek de grootste schaal tussen 0.75 en 1 die past (een paar keer halveren is genoeg)
+  let small = 0.75;
+  let big = 1;
+  for (let step = 0; step < 5; step++) {
+    const middle = (small + big) / 2;
+    viewContent.style.setProperty('--text-scale', middle);
+    if (textFits()) small = middle;
+    else big = middle;
+  }
+  viewContent.style.setProperty('--text-scale', small);
+}
+
+let fitFrame = null;
+window.addEventListener('resize', () => {
+  if (!view.classList.contains('is-open') || fitFrame) return;
+  fitFrame = requestAnimationFrame(() => {
+    fitFrame = null;
+    fitText();
+  });
+});
+
+
 // ---------- Openen en sluiten ----------
 
 function openProject(i) {
   currentProject = i;
   fill(i);
+  fitText();
 
   const cardImage = imageOnScreen(i);
   const from = cardImage.getBoundingClientRect();

@@ -360,7 +360,7 @@ button {
   height: 100%;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding-bottom: var(--margin);
+  padding-bottom: var(--nav-top);
 }
 
 /* Teller op de plek van de nav, in dezelfde letter */
@@ -406,10 +406,12 @@ button {
   height: 24px;
 }
 
-/* Bovenaan twee kolommen: links het beeld, rechts de titel en de info.
-   Het beeld is vierkant en zo groot dat het net op het scherm past. */
+/* Twee kolommen: links het beeld, rechts de titel en de info.
+   Het beeld is vierkant en zo groot dat alles op het scherm past zonder scrollen:
+   de schermhoogte min de teller bovenaan (nav-top + 64px) en de witruimte onderaan (nav-top).
+   Het beeld neemt nooit meer dan 55% van de breedte, zodat de tekst genoeg plaats heeft. */
 .project__intro {
-  --hero-size: min(100svh - var(--nav-top) - 136px, 50vw);
+  --hero-size: min(100svh - 2 * var(--nav-top) - 64px, (100vw - 2 * var(--margin)) * 0.55);
   display: grid;
   grid-template-columns: var(--hero-size) minmax(0, 1fr);
   gap: clamp(48px, 5vw, 96px);
@@ -424,8 +426,7 @@ button {
 
 .project__hero img,
 .project__hero video,
-.project__hero canvas,
-.case__gallery img {
+.project__hero canvas {
   display: block;
   width: 100%;
   height: 100%;
@@ -441,15 +442,19 @@ button {
   transform-origin: 0 0;
 }
 
-/* Rechterkolom: titel en verhaal bovenaan, info onderaan, op één lijn met het beeld */
+/* Rechterkolom: titel en verhaal bovenaan, info onderaan, op één lijn met het beeld.
+   --text-scale maakt alle tekst in deze kolom samen kleiner. js/project.js zet hem lager
+   als de tekst anders hoger zou worden dan het beeld (1 = normaal, 0.75 = het kleinste, kleiner wordt slecht leesbaar). */
 .project__content {
+  --text-scale: 1;
   display: flex;
   flex-direction: column;
   min-width: 0;
 }
 
+/* De letters groeien mee met de breedte en de hoogte van je scherm */
 .project__title {
-  font-size: clamp(56px, 5vw, 96px);
+  font-size: calc(clamp(40px, min(5vw, 9svh), 96px) * var(--text-scale));
   font-weight: 600;
   line-height: 1;
 }
@@ -458,8 +463,8 @@ button {
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: 48px;
-  margin-top: 40px;
+  gap: calc(clamp(24px, 4.5svh, 48px) * var(--text-scale));
+  margin-top: calc(clamp(20px, 3.5svh, 40px) * var(--text-scale));
 }
 
 /* De info als een rustige tabel: label links, waarde rechts, dunne lijnen ertussen */
@@ -472,9 +477,9 @@ button {
 .case__info > div {
   display: grid;
   grid-template-columns: 1fr 2fr;
-  align-items: baseline;
+  align-items: center;   /* gaat de waarde over twee regels, dan staat het label mooi in het midden */
   gap: 24px;
-  padding: 16px 0;
+  padding: calc(clamp(10px, 1.5svh, 16px) * var(--text-scale)) 0;
   border-bottom: 1px solid var(--line);
 }
 
@@ -487,46 +492,26 @@ button {
 }
 
 .case__info dd {
-  font-size: 18px;
+  font-size: calc(clamp(15px, 1.7svh, 18px) * var(--text-scale));
   font-weight: 500;
+  text-wrap: balance;   /* moet het toch afbreken, dan twee even lange regels */
 }
 
 /* De eerste zin groot, de rest rustiger in het grijs */
 .case__story {
   display: flex;
   flex-direction: column;
-  gap: 24px;
-  font-size: clamp(16px, 1.05vw, 20px);
+  gap: calc(clamp(12px, 2.2svh, 24px) * var(--text-scale));
+  font-size: calc(clamp(14px, min(1.05vw, 1.9svh), 20px) * var(--text-scale));
   line-height: 1.5;
   color: var(--grey);
 }
 
 .case__story p:first-child {
-  font-size: clamp(22px, 1.7vw, 32px);
+  font-size: calc(clamp(18px, min(1.7vw, 3svh), 32px) * var(--text-scale));
   font-weight: 500;
   line-height: 1.3;
   color: var(--black);
-}
-
-/* Beelden: het eerste breed, de rest per twee naast elkaar */
-.project__gallery {
-  padding: 96px var(--margin) 0;
-}
-
-.case__gallery {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-}
-
-.case__gallery > * {
-  aspect-ratio: 3 / 2;
-  overflow: hidden;
-}
-
-.case__gallery > :first-child {
-  grid-column: 1 / -1;
-  aspect-ratio: 16 / 9;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -722,6 +707,14 @@ button {
    9. Mobile: alles onder elkaar, kleinere maten
    ========================================================================== */
 
+/* Kleinere computerschermen en tablets: minder witruimte links en rechts op de projectpagina,
+   zodat het beeld en de tekst meer plaats hebben */
+@media (min-width: 769px) and (max-width: 1200px) {
+  .project {
+    --margin: 48px;
+  }
+}
+
 @media (max-width: 768px) {
   :root {
     --margin: 24px;
@@ -792,65 +785,62 @@ button {
     height: 20px;
   }
 
-  /* Op mobile onder elkaar: beeld, titel, verhaal, info */
+  /* Op mobile onder elkaar: beeld, titel, verhaal, info.
+     Het beeld heeft altijd dezelfde vorm: volle breedte, vierkant voor video (4:5 voor een foto),
+     maar nooit zo hoog dat er minder dan 380px overblijft voor de tekst eronder.
+     Past de tekst niet, dan maakt js/project.js hem kleiner (--text-scale). */
   .project__intro {
     grid-template-columns: minmax(0, 1fr);
-    gap: 32px;
-    padding-top: 24px;
+    gap: 20px;
+    padding-top: 20px;
   }
 
   .project__hero {
-    aspect-ratio: 4 / 5;
+    aspect-ratio: auto;
+    height: min((100vw - 2 * var(--margin)) * 1.25, max(160px, 100svh - 380px));
     font-size: 12px;
   }
 
-  /* Vierkante video: het kader krijgt dezelfde vorm, zo zie je de hele video */
   .project__hero--square {
-    aspect-ratio: 1 / 1;
+    height: min(100vw - 2 * var(--margin), max(160px, 100svh - 380px));
   }
 
   .project__title {
-    font-size: 48px;
+    font-size: calc(32px * var(--text-scale));
     line-height: 1.05;
   }
 
   .project__case {
-    gap: 32px;
-    margin-top: 24px;
+    gap: calc(20px * var(--text-scale));
+    margin-top: calc(12px * var(--text-scale));
   }
 
-  .case__info {
-    margin-top: 0;
+  /* Info: dezelfde tabel als op de computer, iets compacter */
+  .case__info > div {
+    gap: 16px;
+    padding: calc(10px * var(--text-scale)) 0;
+  }
+
+  .case__info dt {
+    font-size: 11px;
   }
 
   .case__info dd {
-    font-size: 16px;
-  }
-
-  .project__gallery {
-    padding-top: 40px;
+    font-size: calc(15px * var(--text-scale));
   }
 
   .case__story {
-    gap: 16px;
-    font-size: 16px;
+    gap: calc(8px * var(--text-scale));
+    font-size: calc(14px * var(--text-scale));
   }
 
   .case__story p:first-child {
-    font-size: 22px;
-  }
-
-  .case__gallery {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
-
-  .case__gallery > :first-child {
-    aspect-ratio: 4 / 5;
+    font-size: calc(17px * var(--text-scale));
+    line-height: 1.35;
   }
 
   .project__page {
-    padding-bottom: 64px;
+    padding-bottom: var(--margin);
   }
 
   /* Me */
