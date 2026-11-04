@@ -27,7 +27,9 @@
     <section class="work-grid">
 
       <a class="card" href="#">
-        <div class="card__image placeholder">01</div>
+        <div class="card__image">
+          <video src="videos/project-01.mp4" poster="images/project-01.jpg" width="1080" height="1080" muted loop playsinline preload="none"></video>
+        </div>
         <h2 class="card__title">Project 01</h2>
         <p class="card__meta">Categorie · 2026</p>
         <!-- Alles voor de projectpagina. Verborgen hier, js/project.js toont het als je op het project klikt. -->
@@ -191,12 +193,17 @@
 
     <div class="project__page">
       <p class="project__counter"></p>
-      <div class="project__hero placeholder"></div>
 
-      <div class="project__content">
-        <h2 class="project__title"></h2>
-        <div class="project__case"></div>
+      <div class="project__intro">
+        <div class="project__hero placeholder"></div>
+
+        <div class="project__content">
+          <h2 class="project__title"></h2>
+          <div class="project__case"></div>
+        </div>
       </div>
+
+      <div class="project__gallery"></div>
     </div>
 
   </div>

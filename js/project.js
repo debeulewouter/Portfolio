@@ -49,6 +49,42 @@ function imageOnScreen(i) {
 }
 
 
+// ---------- Video's ----------
+
+// De video van de kaart speelt op de grote plek verder vanaf hetzelfde moment
+function startHeroVideo(cardImage) {
+  const heroVideo = viewHero.querySelector('video');
+  if (!heroVideo) return;
+
+  document.querySelectorAll('.card__image video').forEach((video) => video.pause());
+
+  heroVideo.currentTime = cardImage.querySelector('video').currentTime;
+  heroVideo.muted = true;
+  if (!lessMotion) heroVideo.play().catch(() => {});
+}
+
+// In de vliegende kopie vervangen we de video door één stilstaand beeld van het huidige moment.
+// Een stilstaand beeld vliegt vloeiend en is er meteen, een tweede video moet eerst laden.
+function freezeVideo(ghost, liveVideo) {
+  const video = ghost.querySelector('video');
+  if (!video) return;
+
+  // Nog niets geladen? Dan vliegt de poster.
+  if (!liveVideo || liveVideo.readyState < 2) {
+    const poster = new Image();
+    poster.src = video.poster;
+    video.replaceWith(poster);
+    return;
+  }
+
+  const frame = document.createElement('canvas');
+  frame.width = liveVideo.videoWidth;
+  frame.height = liveVideo.videoHeight;
+  frame.getContext('2d').drawImage(liveVideo, 0, 0);
+  video.replaceWith(frame);
+}
+
+
 // ---------- De pagina vullen ----------
 
 function fill(i) {
@@ -56,12 +92,17 @@ function fill(i) {
 
   viewPage.querySelector('.project__counter').textContent = `${pad(i + 1)} / ${pad(projectTotal)}`;
   viewPage.querySelector('.project__title').textContent = card.querySelector('.card__title').textContent;
-  viewPage.querySelector('.project__case').innerHTML = card.querySelector('.card__case').innerHTML;
+  const caseContent = viewPage.querySelector('.project__case');
+  caseContent.innerHTML = card.querySelector('.card__case').innerHTML;
+  // De beelden staan onder de video en de tekst, over de hele breedte
+  viewPage.querySelector('.project__gallery').replaceChildren(caseContent.querySelector('.case__gallery'));
   view.setAttribute('aria-label', card.querySelector('.card__title').textContent);
 
   // Het grote beeld: een kopie van wat in de kaart staat (foto, of de grijze placeholder)
   const imageContent = [...card.querySelector('.card__image').childNodes];
   viewHero.replaceChildren(...imageContent.map((node) => node.cloneNode(true)));
+  viewHero.classList.toggle('placeholder', card.querySelector('.card__image').classList.contains('placeholder'));
+  viewHero.classList.toggle('project__hero--square', Boolean(viewHero.querySelector('video')));
 
   // Foto's uitpakken buiten het tekenen om, zodat een beeld nooit een beweging ophoudt
   viewPage.querySelectorAll('img').forEach((image) => {
@@ -87,10 +128,14 @@ function flyHero(from, to, cardImage) {
   // Vliegt er nog een kopie (heel snel open en weer dicht)? Die ruimen we eerst op.
   if (landHero) landHero();
 
-  const big = from.width * from.height > to.width * to.height ? from : to;
+  // De kopie krijgt de maat van het grote beeld: alleen daar staat het hele beeld in.
+  // Bij openen is dat de bestemming, bij sluiten het vertrekpunt.
+  const big = view.classList.contains('is-open') ? to : from;
 
   const ghost = viewHero.cloneNode(true);
   ghost.classList.add('project-ghost');
+  // Het beeld dat nu in zicht is: bij openen de kaart, bij sluiten het grote beeld
+  freezeVideo(ghost, (from === big ? viewHero : cardImage).querySelector('video'));
   Object.assign(ghost.style, {
     top: `${big.top}px`,
     left: `${big.left}px`,
@@ -98,8 +143,10 @@ function flyHero(from, to, cardImage) {
     height: `${big.height}px`,
   });
   document.body.appendChild(ghost);
-  viewHero.style.visibility = 'hidden';
-  cardImage.style.visibility = 'hidden';
+  // Met opacity en niet met visibility: Safari tekent een video die start terwijl hij
+  // visibility: hidden heeft, daarna maar half.
+  viewHero.style.opacity = '0';
+  cardImage.style.opacity = '0';
 
   // Hoe de kopie eruitziet op plek rect
   const place = (rect) => {
@@ -126,16 +173,16 @@ function flyHero(from, to, cardImage) {
   landHero = () => {
     flight.cancel();
     ghost.remove();
-    viewHero.style.visibility = '';
-    cardImage.style.visibility = '';
+    viewHero.style.opacity = '';
+    cardImage.style.opacity = '';
     landHero = null;
   };
   flight.onfinish = landHero;
 }
 
-// Teller, titel en tekst schuiven na elkaar omhoog in beeld
+// Teller, titel, tekst en beelden schuiven na elkaar omhoog in beeld
 function reveal() {
-  ['.project__counter', '.project__title', '.project__case'].forEach((selector, k) => {
+  ['.project__counter', '.project__title', '.project__case', '.project__gallery'].forEach((selector, k) => {
     viewPage.querySelector(selector).animate(
       [
         { opacity: 0, translate: '0 24px' },
@@ -156,6 +203,7 @@ function openProject(i) {
 
   const cardImage = imageOnScreen(i);
   const from = cardImage.getBoundingClientRect();
+  startHeroVideo(cardImage);
   view.classList.add('is-open');
   document.body.classList.add('no-scroll');
   viewClose.focus({ preventScroll: true });
@@ -167,6 +215,14 @@ function openProject(i) {
 
 function closeProject() {
   const heroRect = viewHero.getBoundingClientRect();
+  const heroVideo = viewHero.querySelector('video');
+  if (heroVideo) {
+    heroVideo.pause();
+    // De kaart speelt verder waar het grote beeld stopte
+    document.querySelectorAll('.card__image video').forEach((video) => {
+      if (video.getAttribute('src') === heroVideo.getAttribute('src')) video.currentTime = heroVideo.currentTime;
+    });
+  }
 
   view.classList.remove('is-open');
   document.body.classList.remove('no-scroll');

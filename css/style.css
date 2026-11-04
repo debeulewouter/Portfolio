@@ -13,6 +13,7 @@
 
 :root {
   --black: #0a0a0a;
+  --line: #e4e4e4;
   --grey: #707070;
   --light: #efefef;
   --white: #ffffff;
@@ -197,6 +198,16 @@ button {
 
 .card__image {
   aspect-ratio: 3 / 2;
+  overflow: hidden;
+}
+
+/* Video vult het kader. Klikken en vegen gaan door naar de kaart eronder. */
+.card__image video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
 }
 
 .card__title {
@@ -395,15 +406,27 @@ button {
   height: 24px;
 }
 
-/* Groot beeld bovenaan. Zo hoog dat de titel er nog net onder in beeld staat. */
+/* Bovenaan twee kolommen: links het beeld, rechts de titel en de info.
+   Het beeld is vierkant en zo groot dat het net op het scherm past. */
+.project__intro {
+  --hero-size: min(100svh - var(--nav-top) - 136px, 50vw);
+  display: grid;
+  grid-template-columns: var(--hero-size) minmax(0, 1fr);
+  gap: clamp(48px, 5vw, 96px);
+  padding: 32px var(--margin) 0;
+}
+
 .project__hero {
-  height: max(320px, 100svh - 360px);
-  margin: 32px var(--margin) 0;
-  overflow: hidden;
+  align-self: start;
+  aspect-ratio: 1 / 1;
+  font-size: 14px;
 }
 
 .project__hero img,
+.project__hero video,
+.project__hero canvas,
 .case__gallery img {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -418,28 +441,41 @@ button {
   transform-origin: 0 0;
 }
 
+/* Rechterkolom: titel en verhaal bovenaan, info onderaan, op één lijn met het beeld */
 .project__content {
-  padding: 48px var(--margin) 0;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 
 .project__title {
-  font-size: 120px;
+  font-size: clamp(56px, 5vw, 96px);
   font-weight: 600;
   line-height: 1;
 }
 
-/* Info links, verhaal rechts, beelden eronder over de hele breedte */
 .project__case {
-  display: grid;
-  grid-template-columns: 1fr 2fr;
-  gap: 120px 96px;
-  margin-top: 80px;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 48px;
+  margin-top: 40px;
 }
 
+/* De info als een rustige tabel: label links, waarde rechts, dunne lijnen ertussen */
 .case__info {
-  display: flex;
-  flex-direction: column;
+  order: 1;
+  margin-top: auto;
+  border-top: 1px solid var(--line);
+}
+
+.case__info > div {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  align-items: baseline;
   gap: 24px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line);
 }
 
 .case__info dt {
@@ -451,7 +487,6 @@ button {
 }
 
 .case__info dd {
-  margin-top: 6px;
   font-size: 18px;
   font-weight: 500;
 }
@@ -461,23 +496,26 @@ button {
   display: flex;
   flex-direction: column;
   gap: 24px;
-  font-size: 20px;
+  font-size: clamp(16px, 1.05vw, 20px);
   line-height: 1.5;
   color: var(--grey);
 }
 
 .case__story p:first-child {
-  font-size: 32px;
+  font-size: clamp(22px, 1.7vw, 32px);
   font-weight: 500;
   line-height: 1.3;
   color: var(--black);
 }
 
 /* Beelden: het eerste breed, de rest per twee naast elkaar */
+.project__gallery {
+  padding: 96px var(--margin) 0;
+}
+
 .case__gallery {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  grid-column: 1 / -1;
   gap: 24px;
 }
 
@@ -754,15 +792,21 @@ button {
     height: 20px;
   }
 
+  /* Op mobile onder elkaar: beeld, titel, verhaal, info */
+  .project__intro {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 32px;
+    padding-top: 24px;
+  }
+
   .project__hero {
-    height: auto;
-    margin-top: 24px;
     aspect-ratio: 4 / 5;
     font-size: 12px;
   }
 
-  .project__content {
-    padding-top: 32px;
+  /* Vierkante video: het kader krijgt dezelfde vorm, zo zie je de hele video */
+  .project__hero--square {
+    aspect-ratio: 1 / 1;
   }
 
   .project__title {
@@ -771,19 +815,20 @@ button {
   }
 
   .project__case {
-    grid-template-columns: 1fr;
-    gap: 40px;
-    margin-top: 32px;
+    gap: 32px;
+    margin-top: 24px;
   }
 
   .case__info {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
+    margin-top: 0;
   }
 
   .case__info dd {
     font-size: 16px;
+  }
+
+  .project__gallery {
+    padding-top: 40px;
   }
 
   .case__story {

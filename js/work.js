@@ -81,6 +81,37 @@ function measure() {
 }
 
 
+// ---------- Video's in de kaarten ----------
+// Een video speelt alleen als je hem ziet, en niet achter een open projectpagina.
+// Zo laden en draaien de kopieën niet voor niets.
+
+const lastPlayed = new Map();   // per videobestand: welke kopie speelde het laatst
+
+function playCardVideo(video) {
+  // Dezelfde tijd als de kopie die hiervoor speelde, zo zie je de sprong in de rij niet
+  const previous = lastPlayed.get(video.getAttribute('src'));
+  if (previous && previous !== video) video.currentTime = previous.currentTime;
+  lastPlayed.set(video.getAttribute('src'), video);
+
+  video.muted = true;
+  video.play().catch(() => {});   // mag niet afspelen? Dan blijft de stilstaande poster staan
+}
+
+const videoWatcher = new IntersectionObserver((entries) => {
+  entries.forEach((entry) => {
+    entry.target.isVisible = entry.isIntersecting;
+
+    if (!entry.isIntersecting) entry.target.pause();
+    else if (!document.querySelector('.project.is-open')) playCardVideo(entry.target);
+  });
+});
+
+// Bij "minder beweging" op je toestel blijft alleen de poster staan
+if (!reduceMotion) {
+  grid.querySelectorAll('.card__image video').forEach((video) => videoWatcher.observe(video));
+}
+
+
 // ---------- Naar een kaart schuiven ----------
 
 // Kaart i in het midden zetten, zonder animatie (bijvoorbeeld bij het laden van de pagina)
@@ -281,4 +312,9 @@ document.addEventListener('project:close', (event) => {
   activeIndex = firstReal + event.detail.index;
   centerOn(activeIndex);
   update();
+
+  // De video's die je weer ziet, spelen verder
+  grid.querySelectorAll('.card__image video').forEach((video) => {
+    if (video.isVisible) playCardVideo(video);
+  });
 });
