@@ -160,11 +160,14 @@ button {
   display: none;
 }
 
+/* Een kaart: het beeld over de hele breedte, daaronder de titel links en het jaar rechts,
+   en het soort project klein eronder */
 .card {
-  display: flex;
+  display: grid;
   flex: 0 0 var(--card-width);
-  flex-direction: column;
-  gap: 16px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-content: start;
+  column-gap: 16px;
   scroll-snap-align: center;
 }
 
@@ -197,7 +200,9 @@ button {
 }
 
 .card__image {
+  grid-column: 1 / -1;
   aspect-ratio: 3 / 2;
+  margin-bottom: 16px;
   overflow: hidden;
 }
 
@@ -211,11 +216,21 @@ button {
 }
 
 .card__title {
+  align-self: baseline;
   font-size: 24px;
   font-weight: 600;
 }
 
+/* Het jaar rechts, op dezelfde lijn als de titel */
+.card__year {
+  align-self: baseline;
+  font-size: 16px;
+  color: var(--grey);
+}
+
 .card__meta {
+  grid-column: 1 / -1;
+  margin-top: 6px;
   font-size: 16px;
   color: var(--grey);
 }
@@ -472,27 +487,25 @@ button {
   margin-top: calc(clamp(20px, 3.5svh, 40px) * var(--text-scale));
 }
 
-/* De info als een rustige tabel: label links, waarde rechts, dunne lijnen ertussen */
+/* De info: kolommen naast elkaar, een klein grijs label met de waarde eronder.
+   Geen lijnen. Altijd op één rij: is er niet genoeg plaats, dan loopt een waarde over twee regels. */
 .case__info {
+  display: grid;
+  grid-auto-columns: auto;
+  grid-auto-flow: column;
+  justify-content: start;
   order: 1;
-  margin-top: auto;
-  border-top: 1px solid var(--line);
+  gap: calc(clamp(12px, 2svh, 20px) * var(--text-scale)) calc(clamp(24px, 3vw, 56px) * var(--text-scale));
 }
 
 .case__info > div {
-  display: grid;
-  grid-template-columns: 1fr 2fr;
-  align-items: center;   /* gaat de waarde over twee regels, dan staat het label mooi in het midden */
-  gap: 24px;
-  padding: calc(clamp(10px, 1.5svh, 16px) * var(--text-scale)) 0;
-  border-bottom: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .case__info dt {
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  font-size: calc(clamp(13px, 1.5svh, 15px) * var(--text-scale));
   color: var(--grey);
 }
 
@@ -750,7 +763,7 @@ body:has(.page--me) {
   :root {
     --margin: 24px;
     --nav-top: 32px;
-    --content-top: 48px;
+    --content-top: min(48px, 6svh);   /* op een lage gsm minder witruimte */
   }
 
   .nav {
@@ -770,20 +783,17 @@ body:has(.page--me) {
 
   /* Work: smallere kaarten met staande beelden.
      Is je scherm laag, dan wordt de kaart kleiner, zodat alles past zonder te scrollen.
-     300px is alles behalve het beeld: nav, titel, bolletjes en witruimte.
+     Alles behalve het beeld: 204px (nav, titel, jaar, lijntje) plus de witruimte boven en onder.
      Het beeld is 4:5, dus de breedte is 0.8 keer de hoogte. */
   .work-grid {
-    --card-width: min(78vw, (100svh - 300px) * 0.8);
+    --card-width: min(78vw, (100svh - 204px - 2 * var(--content-top)) * 0.8);
 
     gap: 16px;
   }
 
-  .card {
-    gap: 12px;
-  }
-
   .card__image {
     aspect-ratio: 4 / 5;
+    margin-bottom: 12px;
     font-size: 12px;
   }
 
@@ -791,8 +801,13 @@ body:has(.page--me) {
     font-size: 20px;
   }
 
+  .card__year,
   .card__meta {
     font-size: 14px;
+  }
+
+  .card__meta {
+    margin-top: 4px;
   }
 
   .work-nav {
@@ -846,14 +861,17 @@ body:has(.page--me) {
     margin-top: calc(12px * var(--text-scale));
   }
 
-  /* Info: dezelfde tabel als op de computer, iets compacter */
+  /* Info: dezelfde kolommen als op de computer, iets compacter */
+  .case__info {
+    gap: calc(12px * var(--text-scale)) calc(24px * var(--text-scale));
+  }
+
   .case__info > div {
-    gap: 16px;
-    padding: calc(10px * var(--text-scale)) 0;
+    gap: 2px;
   }
 
   .case__info dt {
-    font-size: 11px;
+    font-size: calc(13px * var(--text-scale));
   }
 
   .case__info dd {
@@ -958,20 +976,22 @@ body:has(.page--me) {
     gap: 16px;
   }
 
-  .card {
-    gap: 8px;
-  }
-
   .card__image {
     aspect-ratio: 3 / 2;
+    margin-bottom: 8px;
   }
 
   .card__title {
     font-size: 16px;
   }
 
+  .card__year,
   .card__meta {
     font-size: 13px;
+  }
+
+  .card__meta {
+    margin-top: 2px;
   }
 
   .work-nav {
@@ -1020,13 +1040,16 @@ body:has(.page--me) {
     margin-top: calc(8px * var(--text-scale));
   }
 
+  .case__info {
+    gap: calc(8px * var(--text-scale)) calc(20px * var(--text-scale));
+  }
+
   .case__info > div {
-    gap: 12px;
-    padding: calc(6px * var(--text-scale)) 0;
+    gap: 2px;
   }
 
   .case__info dt {
-    font-size: 10px;
+    font-size: calc(12px * var(--text-scale));
   }
 
   .case__info dd {
@@ -1092,5 +1115,50 @@ body:has(.page--me) {
 
   .contact__meta {
     font-size: 13px;
+  }
+}
+
+
+/* ==========================================================================
+   11. Me op een lage gsm en op een staande tablet
+   ========================================================================== */
+
+/* Lage gsm (rechtop): iets kleinere tekst, zodat de foto genoeg plaats houdt */
+@media (max-width: 768px) and (max-height: 600px) and (orientation: portrait) {
+  .me {
+    gap: 20px;
+  }
+
+  .me__text {
+    gap: 12px;
+  }
+
+  .me__title {
+    font-size: 28px;
+  }
+
+  .me__intro {
+    font-size: 15px;
+  }
+}
+
+/* Staande tablet: naast elkaar worden de kolommen te smal,
+   dus foto boven en tekst eronder, samen in het midden */
+@media (min-width: 769px) and (max-width: 1200px) and (orientation: portrait) {
+  .me {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 48px;
+  }
+
+  .me__photo {
+    flex: 0 1 auto;
+    min-height: 0;
+    max-height: none;
+  }
+
+  .me__text {
+    flex-shrink: 0;
   }
 }
