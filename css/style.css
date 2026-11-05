@@ -133,7 +133,9 @@ button {
     will-change: scale;
   }
 
-  .nav a:active {
+  /* .is-pressed: hetzelfde op een touchscherm, gezet door js/nav.js */
+  .nav a:active,
+  .nav a.is-pressed {
     scale: 0.94;
     transition-duration: 0.2s, 0.12s;
     transition-timing-function: ease, ease-out;
