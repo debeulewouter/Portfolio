@@ -117,14 +117,13 @@ button {
   transition: opacity 0.2s ease;
 }
 
-/* De pagina waar je bent, en de link waar je muis op staat */
+/* De pagina waar je bent, en de link waar je muis op staat (.is-hover zet js/nav.js) */
 .nav a[aria-current="page"],
-.nav a:hover {
+.nav a.is-hover {
   opacity: 1;
 }
 
-/* Klik: het woord veert een klein beetje in, en bij het loslaten zacht terug.
-   De overgang naar de volgende pagina neemt die laatste beweging vanzelf over.
+/* Klik: het woord veert een klein beetje in. Op de volgende pagina veert het terug (nav-release).
    will-change laat de grafische kaart schalen: de letters verspringen dan niet per pixel. */
 @media (prefers-reduced-motion: no-preference) {
   .nav a {
@@ -133,7 +132,7 @@ button {
     will-change: scale;
   }
 
-  /* .is-pressed: hetzelfde op een touchscherm, gezet door js/nav.js */
+  /* :active zolang je indrukt, .is-pressed tot de pagina wisselt (js/nav.js) */
   .nav a:active,
   .nav a.is-pressed {
     scale: 0.94;
@@ -151,7 +150,7 @@ button {
 }
 
 /* Home: alleen het woord PORTFOLIO in het midden. Het staat even stil en vervaagt dan;
-   index.html gaat daarna door naar Work. Past altijd op één regel, ook op een smal scherm. */
+   js/intro.js gaat daarna door naar Work. Past altijd op één regel, ook op een smal scherm. */
 .intro {
   flex: 1;
   display: grid;
@@ -159,7 +158,12 @@ button {
   font-size: min(calc(120 * var(--u)), 15svh, 13vw);
   font-weight: 600;
   line-height: 1;
-  animation: intro-out 0.6s ease 1s forwards;
+  opacity: 0;   /* onzichtbaar tot het lettertype er is, anders verspringen de letters */
+}
+
+.intro.is-playing {
+  opacity: 1;
+  animation: intro-out 2s ease 1s forwards;
 }
 
 @keyframes intro-out {
@@ -849,22 +853,20 @@ body:has(.page--me) {
   }
 }
 
-/* Op een telefoon: de menuwoorden staan op elke pagina op dezelfde plek, dus hun vak hoeft niet
-   mee te bewegen. Zo'n vak rekent de browser beeldje voor beeldje uit, terwijl de nieuwe pagina nog
-   laadt; dat hapert op een telefoon. Alleen schalen en vervagen doet de grafische kaart zelf.
-   Het aangetikte woord (.is-pressed staat op 0.94) veert vanaf daar terug. */
-@media (hover: none) {
-  ::view-transition-group(nav-work),
-  ::view-transition-group(nav-me),
-  ::view-transition-group(nav-contact) {
-    animation: none;
-  }
+/* De menuwoorden staan op elke pagina op dezelfde plek, dus hun vak hoeft niet mee te bewegen.
+   Zo'n vak rekent de browser beeldje voor beeldje uit terwijl de nieuwe pagina nog laadt, en dat hapert.
+   Alleen schalen en vervagen doet de grafische kaart zelf. Het aangeklikte woord (.is-pressed staat
+   op 0.94) veert vanaf daar terug. */
+::view-transition-group(nav-work),
+::view-transition-group(nav-me),
+::view-transition-group(nav-contact) {
+  animation: none;
+}
 
-  html:has(.nav a:nth-child(1)[aria-current="page"])::view-transition-image-pair(nav-work),
-  html:has(.nav a:nth-child(2)[aria-current="page"])::view-transition-image-pair(nav-me),
-  html:has(.nav a:nth-child(3)[aria-current="page"])::view-transition-image-pair(nav-contact) {
-    animation: nav-release 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-  }
+html:has(.nav a:nth-child(1)[aria-current="page"])::view-transition-image-pair(nav-work),
+html:has(.nav a:nth-child(2)[aria-current="page"])::view-transition-image-pair(nav-me),
+html:has(.nav a:nth-child(3)[aria-current="page"])::view-transition-image-pair(nav-contact) {
+  animation: nav-release 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @keyframes nav-release {

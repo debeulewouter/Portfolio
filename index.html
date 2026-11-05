@@ -7,20 +7,16 @@
 
   <!-- Het lettertype staat in je eigen map: geen wachten op een andere server -->
   <link rel="preload" href="fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="css/style.css?v=2026-11-06">
+  <link rel="stylesheet" href="css/style.css?v=2026-11-06e">
 
   <!-- Zonder JavaScript gaat de pagina ook door naar Work -->
-  <noscript><meta http-equiv="refresh" content="2;url=work.html"></noscript>
+  <noscript><meta http-equiv="refresh" content="2;url=work.html"><style>.intro { opacity: 1; }</style></noscript>
 </head>
 <body>
 
   <h1 class="intro">PORTFOLIO</h1>
 
-  <!-- Na het vervagen door naar Work (zie .intro in style.css: 1s stil + 0.6s vervagen).
-       replace: zo kom je met de terugknop niet opnieuw op dit scherm. -->
-  <script>
-    setTimeout(() => window.location.replace('work.html'), 1600);
-  </script>
+  <script src="js/intro.js?v=2026-11-06"></script>
 
 </body>
 </html>
