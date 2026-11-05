@@ -19,9 +19,14 @@
   --light: #efefef;
   --white: #ffffff;
 
-  --margin: 120px;      /* marge links en rechts */
-  --nav-top: 64px;      /* afstand van de nav tot de bovenkant */
-  --content-top: min(80px, 8svh);  /* afstand tussen nav en content, kleiner op een laag scherm */
+  /* De maateenheid van de site. Tot en met een scherm van 1920x1080 is dit gewoon 1px.
+     Op een groter scherm groeit hij evenredig mee: op 4K is hij 2px en is alles precies twee keer zo groot.
+     Schrijf maten daarom als calc(24 * var(--u)) in plaats van 24px (mobile en lage schermen mogen px gebruiken). */
+  --u: max(1px, min(100vw / 1920, 100svh / 1080));
+
+  --margin: calc(120 * var(--u));      /* marge links en rechts */
+  --nav-top: calc(64 * var(--u));      /* afstand van de nav tot de bovenkant */
+  --content-top: min(calc(80 * var(--u)), 8svh);  /* afstand tussen nav en content, kleiner op een laag scherm */
 }
 
 *,
@@ -78,7 +83,7 @@ button {
   display: grid;
   place-items: center;
   background: var(--light);
-  font-size: 14px;
+  font-size: calc(14 * var(--u));
   font-weight: 500;
   color: var(--grey);
 }
@@ -94,9 +99,9 @@ button {
 .nav {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
-  column-gap: 80px;
+  column-gap: calc(80 * var(--u));
   padding-top: var(--nav-top);
-  font-size: 24px;
+  font-size: calc(24 * var(--u));
   font-weight: 600;
 }
 
@@ -123,9 +128,9 @@ button {
 .nav--home {
   flex: 1;
   align-content: center;
-  column-gap: 130px;
+  column-gap: calc(130 * var(--u));
   padding-top: 0;
-  font-size: 40px;
+  font-size: calc(40 * var(--u));
 }
 
 .nav--home a {
@@ -162,11 +167,11 @@ button {
    en de padding zorgt dat de eerste en laatste kaart ook in het midden kunnen staan.
    De kaart is nooit breder dan 840 px, en past altijd in de hoogte van het scherm. */
 .work-grid {
-  --card-width: min(840px, 50vw, (100svh - 420px) * 1.5);
+  --card-width: min(calc(840 * var(--u)), 50vw, (100svh - calc(420 * var(--u))) * 1.5);
 
   position: relative;   /* js/work.js meet de kaarten vanaf hier */
   display: flex;
-  gap: 48px;
+  gap: calc(48 * var(--u));
   margin-top: auto;
   margin-inline: calc(-1 * var(--margin));
   padding-inline: calc((100vw - var(--card-width)) / 2);
@@ -187,7 +192,7 @@ button {
   flex: 0 0 var(--card-width);
   grid-template-columns: minmax(0, 1fr) auto;
   align-content: start;
-  column-gap: 16px;
+  column-gap: calc(16 * var(--u));
   scroll-snap-align: center;
 }
 
@@ -222,7 +227,7 @@ button {
 .card__image {
   grid-column: 1 / -1;
   aspect-ratio: 3 / 2;
-  margin-bottom: 16px;
+  margin-bottom: calc(16 * var(--u));
   overflow: hidden;
 }
 
@@ -237,21 +242,21 @@ button {
 
 .card__title {
   align-self: baseline;
-  font-size: 24px;
+  font-size: calc(24 * var(--u));
   font-weight: 600;
 }
 
 /* Het jaar rechts, op dezelfde lijn als de titel */
 .card__year {
   align-self: baseline;
-  font-size: 16px;
+  font-size: calc(16 * var(--u));
   color: var(--grey);
 }
 
 .card__meta {
   grid-column: 1 / -1;
-  margin-top: 6px;
-  font-size: 16px;
+  margin-top: calc(6 * var(--u));
+  font-size: calc(16 * var(--u));
   color: var(--grey);
 }
 
@@ -273,8 +278,8 @@ button {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  margin-top: 32px;
+  gap: calc(12 * var(--u));
+  margin-top: calc(32 * var(--u));
   margin-bottom: auto;
 }
 
@@ -290,11 +295,11 @@ button {
 /* Het actieve bolletje wordt een streepje.
    De padding maakt de knop groter om op te klikken, zonder dat je het ziet. */
 .work-dots__dot {
-  width: 22px;
-  height: 22px;
-  padding: 8px;
+  width: calc(22 * var(--u));
+  height: calc(22 * var(--u));
+  padding: calc(8 * var(--u));
   border: 0;
-  border-radius: 11px;
+  border-radius: calc(11 * var(--u));
   background: var(--black);
   background-clip: content-box;
   opacity: 0.2;
@@ -303,7 +308,7 @@ button {
 }
 
 .work-dots__dot.is-active {
-  width: 40px;
+  width: calc(40 * var(--u));
   opacity: 1;
 }
 
@@ -311,9 +316,9 @@ button {
    Zodra je naar een andere kaart gaat, zet JavaScript .is-hidden erop. */
 .work-hint {
   position: relative;
-  width: 48px;
-  height: 2px;
-  margin-top: 12px;
+  width: calc(48 * var(--u));
+  height: calc(2 * var(--u));
+  margin-top: calc(12 * var(--u));
   overflow: hidden;
   background: var(--line);
   transition: opacity 0.6s ease;
@@ -328,14 +333,14 @@ button {
   content: "";
   position: absolute;
   inset: 0 auto 0 0;
-  width: 16px;
+  width: calc(16 * var(--u));
   background: var(--black);
   animation: hint-slide 1.6s ease-in-out infinite alternate;
 }
 
 @keyframes hint-slide {
   to {
-    translate: 32px 0;
+    translate: calc(32 * var(--u)) 0;
   }
 }
 
@@ -360,7 +365,7 @@ button {
 @media (prefers-reduced-motion: reduce) {
   /* Minder beweging: het streepje staat stil in het midden */
   .work-hint::after {
-    left: 16px;
+    left: calc(16 * var(--u));
     animation: none;
   }
 }
@@ -397,6 +402,8 @@ button {
 /* Het project vult het scherm en scrolt zelf naar beneden.
    Onderaan evenveel witruimte als links en rechts. */
 .project__page {
+  display: flex;
+  flex-direction: column;
   height: 100%;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -406,23 +413,23 @@ button {
 /* Teller op de plek van de nav, in dezelfde letter */
 .project__counter {
   padding: var(--nav-top) var(--margin) 0;
-  font-size: 24px;
+  font-size: calc(24 * var(--u));
   font-weight: 600;
 }
 
 /* Kruisje: een zwarte cirkel die blijft staan terwijl je scrolt.
    Zo zie je hem op wit, op tekst en op elke foto.
-   De geluidsknop (bij een grote video) ziet er net zo uit, op dezelfde plek. */
+   De geluidsknop (bij een grote video) heeft dezelfde vorm en maat. */
 .project__close,
 .project__sound {
   position: fixed;
-  top: calc(var(--nav-top) - 14px);
+  top: calc(var(--nav-top) - calc(14 * var(--u)));
   right: var(--margin);
   z-index: 1;
   display: grid;
   place-items: center;
-  width: 56px;
-  height: 56px;
+  width: calc(56 * var(--u));
+  height: calc(56 * var(--u));
   border: 0;
   border-radius: 50%;
   background: var(--black);
@@ -446,14 +453,25 @@ button {
 
 .project__close svg,
 .project__sound svg {
-  width: 24px;
-  height: 24px;
+  width: calc(24 * var(--u));
+  height: calc(24 * var(--u));
 }
 
 /* Geluidsknop: alleen zichtbaar als de video groot staat én geluid heeft (zie js/project.js).
-   Boven de laag met de grote video, anders kun je er niet op klikken. */
-.project__sound {
+   Boven de laag met de grote video, anders kun je er niet op klikken.
+   Hij staat in de hoek rechtsonder van de video: js/project.js zet in --zoom-right en --zoom-bottom
+   waar die hoek ligt, en in --sound-size hoe groot hij is (hij groeit mee met de video).
+   Halfdoorzichtig, zodat je hem op licht en donker beeld ziet.
+   ".project" ervoor: zo wint deze plek van de plek van het kruisje op mobile en op lage schermen. */
+.project .project__sound {
+  --sound-gap: calc(var(--sound-size, 56px) * 0.35);
+  top: auto;
+  right: calc(var(--zoom-right, 0px) + var(--sound-gap));
+  bottom: calc(var(--zoom-bottom, 0px) + var(--sound-gap));
   z-index: 3;
+  width: var(--sound-size, 56px);
+  height: var(--sound-size, 56px);
+  background: rgb(0 0 0 / 60%);
   opacity: 0;
   pointer-events: none;
 }
@@ -463,6 +481,11 @@ button {
   pointer-events: auto;
 }
 
+.project .project__sound svg {
+  width: 43%;
+  height: 43%;
+}
+
 /* Eén icoon tegelijk: luidspreker met golven (geluid aan) of met een kruisje (geluid uit) */
 .project__sound[aria-pressed="true"] .sound-off,
 .project__sound[aria-pressed="false"] .sound-on {
@@ -470,22 +493,40 @@ button {
 }
 
 /* Twee kolommen: links het beeld, rechts de titel en de info.
-   Het beeld is vierkant en zo groot dat alles op het scherm past zonder scrollen:
+   Het beeld heeft de vorm van de video zelf (--hero-ratio, breedte gedeeld door hoogte, gezet door
+   js/project.js), zo wordt er nooit iets weggesneden. Het is zo groot dat alles op het scherm past:
    de schermhoogte min de teller bovenaan (nav-top + 64px) en de witruimte onderaan (nav-top).
-   Het beeld neemt nooit meer dan 55% van de breedte, zodat de tekst genoeg plaats heeft. */
+   Het beeld neemt nooit meer dan --hero-share van de breedte, zodat de tekst genoeg plaats heeft.
+   --hero-size is de breedte van het beeld. Blijft er hoogte over, dan staat alles in het midden. */
 .project__intro {
-  --hero-size: min(100svh - 2 * var(--nav-top) - 64px, (100vw - 2 * var(--margin)) * 0.55);
+  --hero-ratio: 1;
+  --hero-share: 0.55;
+  --hero-size: min((100svh - 2 * var(--nav-top) - calc(64 * var(--u))) * var(--hero-ratio), (100vw - 2 * var(--margin)) * var(--hero-share));
   --hero-scale: 1;   /* js/project.js zet dit lager als de tekst anders niet past */
   display: grid;
+  flex: 1 0 auto;
+  align-content: center;
   grid-template-columns: calc(var(--hero-size) * var(--hero-scale)) minmax(0, 1fr);
-  gap: clamp(48px, 5vw, 96px);
-  padding: 32px var(--margin) 0;
+  gap: clamp(calc(48 * var(--u)), 5vw, calc(96 * var(--u)));
+  padding: calc(32 * var(--u)) var(--margin) 0;
+}
+
+/* Een liggende video (16:9) mag breder zijn: anders wordt hij lager dan de tekst ernaast */
+.project__intro--wide {
+  --hero-share: 0.58;
+}
+
+/* Naast een brede video is de tekstkolom smaller: een kleinere titel blijft op één regel */
+@media (min-width: 769px) and (min-height: 561px) and (orientation: landscape) {
+  .project__intro--wide .project__title {
+    font-size: clamp(calc(32 * var(--u)), min(3vw, 5.5svh), calc(96 * var(--u)));
+  }
 }
 
 .project__hero {
   align-self: center;   /* naast de tekst: allebei in het midden */
-  aspect-ratio: 1 / 1;
-  font-size: 14px;
+  aspect-ratio: var(--hero-ratio);
+  font-size: calc(14 * var(--u));
 }
 
 /* Een video in het project kun je aanklikken om hem groot te bekijken (zie js/project.js) */
@@ -549,7 +590,7 @@ button {
 
 /* De letters groeien mee met de breedte en de hoogte van je scherm */
 .project__title {
-  font-size: clamp(40px, min(5vw, 9svh), 96px);
+  font-size: clamp(calc(40 * var(--u)), min(5vw, 9svh), calc(96 * var(--u)));
   font-weight: 600;
   line-height: 1;
 }
@@ -558,9 +599,9 @@ button {
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: clamp(24px, 4.5svh, 48px);
-  max-width: 760px;   /* op een breed scherm geen eindeloos lange regels */
-  margin-top: clamp(20px, 3.5svh, 40px);
+  gap: clamp(calc(24 * var(--u)), 4.5svh, calc(48 * var(--u)));
+  max-width: calc(760 * var(--u));   /* op een breed scherm geen eindeloos lange regels */
+  margin-top: clamp(calc(20 * var(--u)), 3.5svh, calc(40 * var(--u)));
 }
 
 /* De info: kolommen naast elkaar, een klein grijs label met de waarde eronder. Geen lijnen.
@@ -568,22 +609,22 @@ button {
 .case__info {
   display: flex;
   order: 1;
-  gap: clamp(12px, 2svh, 20px) clamp(24px, 3vw, 56px);
+  gap: clamp(calc(12 * var(--u)), 2svh, calc(20 * var(--u))) clamp(calc(24 * var(--u)), 3vw, calc(56 * var(--u)));
 }
 
 .case__info > div {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: calc(4 * var(--u));
 }
 
 .case__info dt {
-  font-size: clamp(14px, 1.5svh, 15px);
+  font-size: clamp(calc(14 * var(--u)), 1.5svh, calc(15 * var(--u)));
   color: var(--grey);
 }
 
 .case__info dd {
-  font-size: clamp(16px, 1.7svh, 18px);
+  font-size: clamp(calc(16 * var(--u)), 1.7svh, calc(18 * var(--u)));
   font-weight: 500;
   white-space: nowrap;   /* een waarde breekt nooit af in een kolom */
 }
@@ -596,7 +637,7 @@ button {
 .case__info.is-stacked > div {
   flex-direction: row;
   align-items: baseline;
-  gap: 16px;
+  gap: calc(16 * var(--u));
 }
 
 .case__info.is-stacked dt {
@@ -611,14 +652,14 @@ button {
 .case__story {
   display: flex;
   flex-direction: column;
-  gap: clamp(12px, 2.2svh, 24px);
-  font-size: clamp(16px, min(1.05vw, 1.9svh), 20px);
+  gap: clamp(calc(12 * var(--u)), 2.2svh, calc(24 * var(--u)));
+  font-size: clamp(calc(16 * var(--u)), min(1.05vw, 1.9svh), calc(20 * var(--u)));
   line-height: 1.55;
   color: var(--text);
 }
 
 .case__story p:first-child {
-  font-size: clamp(20px, min(1.7vw, 3svh), 32px);
+  font-size: clamp(calc(20 * var(--u)), min(1.7vw, 3svh), calc(32 * var(--u)));
   font-weight: 500;
   line-height: 1.3;
   color: var(--black);
@@ -656,7 +697,7 @@ body:has(.page--me) {
   grid-template-columns: 1fr 1fr;
   grid-template-rows: minmax(0, 1fr);
   align-items: center;
-  gap: 96px;
+  gap: calc(96 * var(--u));
   min-height: 0;
 }
 
@@ -673,17 +714,17 @@ body:has(.page--me) {
 .me__text {
   display: flex;
   flex-direction: column;
-  gap: 40px;
+  gap: calc(40 * var(--u));
 }
 
 .me__title {
-  font-size: 64px;
+  font-size: calc(64 * var(--u));
   font-weight: 600;
   line-height: 1.1;
 }
 
 .me__intro {
-  font-size: 24px;
+  font-size: calc(24 * var(--u));
   line-height: 1.5;
 }
 
@@ -713,19 +754,19 @@ body:has(.page--me) {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: min(40px, 4svh);
+  gap: min(calc(40 * var(--u)), 4svh);
   margin-block: auto;
   text-align: center;
 }
 
 .contact__title {
-  font-size: min(120px, 15svh);   /* op een laag scherm iets kleiner, zodat alles past */
+  font-size: min(calc(120 * var(--u)), 15svh);   /* op een laag scherm iets kleiner, zodat alles past */
   font-weight: 600;
   line-height: 1;
 }
 
 .contact__mail {
-  font-size: min(48px, 6svh);
+  font-size: min(calc(48 * var(--u)), 6svh);
   font-weight: 600;
   text-decoration: underline;
   /* De lijn net onder de staartjes van j en g, en zonder onderbrekingen.
@@ -740,15 +781,15 @@ body:has(.page--me) {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: calc(4 * var(--u));
   text-align: center;
 }
 
 .contact__socials {
   display: flex;
-  gap: 32px;
-  margin-bottom: 12px;
-  font-size: 20px;
+  gap: calc(32 * var(--u));
+  margin-bottom: calc(12 * var(--u));
+  font-size: calc(20 * var(--u));
   font-weight: 500;
 }
 
@@ -757,7 +798,7 @@ body:has(.page--me) {
 }
 
 .contact__meta {
-  font-size: 16px;
+  font-size: calc(16 * var(--u));
   line-height: 1.5;
   color: var(--grey);
 }
@@ -928,9 +969,9 @@ body:has(.page--me) {
   }
 
   /* Op mobile onder elkaar: beeld, titel, verhaal, info.
-     Het beeld heeft altijd dezelfde vorm: volle breedte, vierkant voor video (4:5 voor een foto),
+     Een video houdt zijn eigen vorm (een foto is 4:5 en wordt bijgesneden): volle breedte,
      maar nooit zo hoog dat er minder dan 380px overblijft voor de tekst eronder.
-     Past de tekst dan nog niet, dan maakt js/project.js het beeld lager (--hero-scale), nooit de tekst kleiner. */
+     Past de tekst dan nog niet, dan maakt js/project.js het beeld kleiner (--hero-scale), nooit de tekst. */
   .project__intro {
     grid-template-columns: minmax(0, 1fr);
     gap: 20px;
@@ -943,8 +984,11 @@ body:has(.page--me) {
     font-size: 12px;
   }
 
-  .project__hero--square {
-    height: calc(min(100vw - 2 * var(--margin), max(120px, 100svh - 380px)) * var(--hero-scale));
+  .project__hero--video {
+    justify-self: start;
+    width: calc(min(100vw - 2 * var(--margin), max(120px, 100svh - 380px) * var(--hero-ratio)) * var(--hero-scale));
+    height: auto;
+    aspect-ratio: var(--hero-ratio);
   }
 
   .project__title {
@@ -1094,7 +1138,7 @@ body:has(.page--me) {
     margin-top: 12px;
   }
 
-  /* Projectpagina: het vierkante beeld links, de tekst rechts */
+  /* Projectpagina: het beeld links, de tekst rechts */
   .project__counter {
     font-size: 16px;
   }
@@ -1113,16 +1157,18 @@ body:has(.page--me) {
   }
 
   .project__intro {
-    --hero-size: min(100svh - 2 * var(--nav-top) - 40px, (100vw - 2 * var(--margin)) * 0.45);
+    --hero-size: min((100svh - 2 * var(--nav-top) - 40px) * var(--hero-ratio), (100vw - 2 * var(--margin)) * 0.45);
     grid-template-columns: calc(var(--hero-size) * var(--hero-scale)) minmax(0, 1fr);
     gap: 32px;
     padding-top: 8px;
   }
 
   .project__hero,
-  .project__hero--square {
-    aspect-ratio: 1 / 1;
+  .project__hero--video {
+    justify-self: stretch;
+    width: auto;
     height: auto;
+    aspect-ratio: var(--hero-ratio);
   }
 
   .project__page {
@@ -1224,8 +1270,36 @@ body:has(.page--me) {
    11. Me op een lage gsm en op een staande tablet
    ========================================================================== */
 
+/* Heel weinig hoogte: het jaar staat al op de kaart in de carrousel, dus dat laten we op de
+   projectpagina weg als de info onder elkaar staat. Zo blijft het beeld groter. */
+@media (max-width: 768px) and (max-height: 600px) and (orientation: portrait), (max-height: 400px) and (orientation: landscape) {
+  .case__info.is-stacked > .case__year {
+    display: none;
+  }
+}
+
 /* Lage gsm (rechtop): iets kleinere tekst, zodat de foto genoeg plaats houdt */
 @media (max-width: 768px) and (max-height: 600px) and (orientation: portrait) {
+  .project__intro {
+    gap: 12px;
+    padding-top: 12px;
+  }
+
+  /* Klein genoeg om een lange titel op één regel te houden, ook op de smalste gsm */
+  .project__title {
+    font-size: 26px;
+  }
+
+  /* De kaart is hier smal: een lange titel moet naast het jaar passen */
+  .card__title {
+    font-size: 18px;
+  }
+
+  .project__case {
+    gap: 12px;
+    margin-top: 4px;
+  }
+
   .me {
     gap: 20px;
   }
@@ -1253,10 +1327,16 @@ body:has(.page--me) {
     gap: 40px;
   }
 
-  .project__hero,
-  .project__hero--square {
+  .project__hero {
     aspect-ratio: auto;
     height: calc(min(100vw - 2 * var(--margin), max(200px, 100svh - 2 * var(--nav-top) - 64px - 380px)) * var(--hero-scale));
+  }
+
+  .project__hero--video {
+    justify-self: start;
+    width: calc(min(100vw - 2 * var(--margin), max(200px, 100svh - 2 * var(--nav-top) - 64px - 380px) * var(--hero-ratio)) * var(--hero-scale));
+    height: auto;
+    aspect-ratio: var(--hero-ratio);
   }
 
   .project__content {

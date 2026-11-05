@@ -106,8 +106,13 @@ function fill(i) {
   const imageContent = [...card.querySelector('.card__image').childNodes];
   viewHero.replaceChildren(...imageContent.map((node) => node.cloneNode(true)));
   viewHero.classList.toggle('placeholder', card.querySelector('.card__image').classList.contains('placeholder'));
-  const hasVideo = Boolean(viewHero.querySelector('video'));
-  viewHero.classList.toggle('project__hero--square', hasVideo);
+  const heroVideo = viewHero.querySelector('video');
+  const hasVideo = Boolean(heroVideo);
+  viewHero.classList.toggle('project__hero--video', hasVideo);
+  // Het vak krijgt de vorm van de video (uit width en height in work.html), zo snijden we niets weg
+  const ratio = hasVideo ? heroVideo.width / heroVideo.height : 1;
+  viewIntro.style.setProperty('--hero-ratio', ratio);
+  viewIntro.classList.toggle('project__intro--wide', ratio > 1.2);
   // Een video kun je aanklikken om hem groot te bekijken (zie "Video groot bekijken")
   if (hasVideo) {
     viewHero.setAttribute('role', 'button');
@@ -246,21 +251,16 @@ function fitText() {
   viewPage.style.overflowY = '';
 }
 
-// Zoek het grootste beeld tussen 60% en 100% waarbij fits() klopt (een paar keer halveren is genoeg).
+// Zoek het grootste beeld tussen 60% en 100% waarbij fits() klopt: van groot naar klein proberen.
+// Halveren kan hier niet: bij een liggende video wordt het beeld sneller laag dan de tekst,
+// dus soms past een middenmaat wel en de kleinste maat niet.
 // Kleiner dan 60% maken we het beeld nooit. Geeft terug of het gelukt is.
 function shrinkHero(fits) {
-  let small = 0.6;
-  let big = 1;
-  viewIntro.style.setProperty('--hero-scale', small);
-  if (!fits()) return false;
-  for (let step = 0; step < 6; step++) {
-    const middle = (small + big) / 2;
-    viewIntro.style.setProperty('--hero-scale', middle);
-    if (fits()) small = middle;
-    else big = middle;
+  for (let scale = 0.98; scale >= 0.6; scale -= 0.02) {
+    viewIntro.style.setProperty('--hero-scale', scale);
+    if (fits()) return true;
   }
-  viewIntro.style.setProperty('--hero-scale', small);
-  return true;
+  return false;
 }
 
 let fitFrame = null;
@@ -342,7 +342,9 @@ function isZoomed() {
 
 // De grote maat: zo groot mogelijk op het scherm, met wat witruimte rond, in de vorm van de video
 function zoomRect(video) {
-  const space = window.innerWidth <= 768 ? 16 : 48;
+  // Zelfde maateenheid als --u in de CSS: op een scherm groter dan 1920x1080 groeit de witruimte mee
+  const unit = Math.max(1, Math.min(window.innerWidth / 1920, window.innerHeight / 1080));
+  const space = window.innerWidth <= 768 ? 16 : 48 * unit;
   const ratio = (video.videoWidth || video.width) / (video.videoHeight || video.height);
   const width = Math.min(window.innerWidth - 2 * space, (window.innerHeight - 2 * space) * ratio);
   const height = width / ratio;
@@ -362,6 +364,11 @@ function placeZoomVideo(video) {
     width: `${big.width}px`,
     height: `${big.height}px`,
   });
+  // De geluidsknop komt in de hoek rechtsonder van de video (zie .project__sound in de CSS)
+  view.style.setProperty('--zoom-right', `${window.innerWidth - big.left - big.width}px`);
+  view.style.setProperty('--zoom-bottom', `${window.innerHeight - big.top - big.height}px`);
+  // Hij groeit mee met de video, maar blijft groot genoeg om met je vinger aan te tikken
+  view.style.setProperty('--sound-size', `${Math.max(44, big.height * 0.065)}px`);
   return big;
 }
 
@@ -408,8 +415,11 @@ function zoomIn() {
   zoomLayer.append(video);   // verhuizen pauzeert een video, dus meteen weer starten
   keepPlaying(video);
   const big = placeZoomVideo(video);
-  // Geluidsknop alleen bij een video die geluid heeft
-  view.classList.toggle('has-sound', hasAudio(video));
+  // Geluidsknop alleen bij een video die geluid heeft. Sommige browsers weten dat pas
+  // als de video speelt, dus we kijken nog een keer zodra hij loopt.
+  const checkSound = () => view.classList.toggle('has-sound', hasAudio(video));
+  checkSound();
+  video.addEventListener('timeupdate', checkSound, { once: true });
   view.classList.add('is-zoomed');
   zoomLayer.focus({ preventScroll: true });
 

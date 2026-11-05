@@ -7,7 +7,7 @@
 
   <!-- Het lettertype staat in je eigen map: geen wachten op een andere server -->
   <link rel="preload" href="fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="css/style.css?v=2026-11-04k">
+  <link rel="stylesheet" href="css/style.css?v=2026-11-05d">
 
   <!-- Staat je muis op een nav link? Dan haalt de browser die pagina alvast op,
        zodat de overgang meteen start als je klikt (Chrome, alleen via http zoals Live Server) -->
@@ -37,13 +37,33 @@
         <div class="card__case" hidden>
           <dl class="case__info">
             <div><dt>Role</dt><dd>Concept, 3D &amp; motion</dd></div>
-            <div><dt>Year</dt><dd>2026</dd></div>
+            <div class="case__year"><dt>Year</dt><dd>2026</dd></div>
             <div><dt>Tools</dt><dd>Cinema 4D, After Effects</dd></div>
           </dl>
           <!-- &nbsp; = een spatie waar de regel niet mag afbreken (houdt "15 seconds", "I focused" en "a polished" samen) -->
           <div class="case__story">
             <p>One of my initials, built entirely from particles.</p>
             <p>A short motion piece of 5 to 15&nbsp;seconds. Besides the simulation, I&nbsp;focused on camera, lighting, materials and <span class="nowrap">post-processing</span> to give it a&nbsp;polished finish.</p>
+          </div>
+        </div>
+      </a>
+
+      <a class="card" href="#">
+        <div class="card__image">
+          <video src="videos/project-02.mp4?v=2026-11-05" poster="images/project-02.jpg?v=2026-11-05" width="1920" height="1080" muted loop playsinline preload="none"></video>
+        </div>
+        <h2 class="card__title">Product Visualiser</h2>
+        <p class="card__year">2026</p>
+        <p class="card__meta">Motion Graphics</p>
+        <div class="card__case" hidden>
+          <dl class="case__info">
+            <div><dt>Role</dt><dd>Concept, 3D &amp; animation</dd></div>
+            <div class="case__year"><dt>Year</dt><dd>2026</dd></div>
+            <div><dt>Tools</dt><dd>Unreal Engine, Cinema 4D, Premiere Pro</dd></div>
+          </dl>
+          <div class="case__story">
+            <p>A skateboard you can customise in real&nbsp;time.</p>
+            <p>A product animation shows off the board, then the configurator takes over: deck graphics, wheels, lighting and camera views.</p>
           </div>
         </div>
       </a>
@@ -100,8 +120,8 @@
 
   </div>
 
-  <script src="js/work.js?v=2026-11-04k"></script>
-  <script src="js/project.js?v=2026-11-04k"></script>
+  <script src="js/work.js?v=2026-11-05d"></script>
+  <script src="js/project.js?v=2026-11-05d"></script>
 
 </body>
 </html>
