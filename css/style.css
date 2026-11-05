@@ -13,7 +13,6 @@
 
 :root {
   --black: #0a0a0a;
-  --line: #e4e4e4;
   --grey: #707070;
   --text: #4a4a4a;      /* lopende tekst: donkerder dan --grey, beter leesbaar */
   --light: #efefef;
@@ -167,7 +166,7 @@ button {
    en de padding zorgt dat de eerste en laatste kaart ook in het midden kunnen staan.
    De kaart is nooit breder dan 840 px, en past altijd in de hoogte van het scherm. */
 .work-grid {
-  --card-width: min(calc(840 * var(--u)), 50vw, (100svh - calc(420 * var(--u))) * 1.5);
+  --card-width: min(calc(840 * var(--u)), 50vw, (100svh - calc(394 * var(--u))) * 1.5);
 
   position: relative;   /* js/work.js meet de kaarten vanaf hier */
   display: flex;
@@ -273,12 +272,10 @@ button {
   color: var(--grey);
 }
 
-/* Onder de carrousel: de bolletjes met de hint eronder */
+/* Onder de carrousel: de bolletjes */
 .work-nav {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: calc(12 * var(--u));
+  justify-content: center;
   margin-top: calc(32 * var(--u));
   margin-bottom: auto;
 }
@@ -287,7 +284,7 @@ button {
   display: flex;
 }
 
-/* Maar één project: geen bolletjes (zie js/work.js) */
+/* Maar één kaart: geen bolletjes (zie js/work.js) */
 .work-dots[hidden] {
   display: none;
 }
@@ -312,38 +309,6 @@ button {
   opacity: 1;
 }
 
-/* Hint dat je opzij kunt schuiven: een dun grijs lijntje met een zwart streepje dat heen en weer glijdt.
-   Zodra je naar een andere kaart gaat, zet JavaScript .is-hidden erop. */
-.work-hint {
-  position: relative;
-  width: calc(48 * var(--u));
-  height: calc(2 * var(--u));
-  margin-top: calc(12 * var(--u));
-  overflow: hidden;
-  background: var(--line);
-  transition: opacity 0.6s ease;
-}
-
-.work-hint.is-hidden {
-  opacity: 0;
-}
-
-/* Het zwarte streepje: een derde van het lijntje, glijdt rustig van links naar rechts en terug */
-.work-hint::after {
-  content: "";
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: calc(16 * var(--u));
-  background: var(--black);
-  animation: hint-slide 1.6s ease-in-out infinite alternate;
-}
-
-@keyframes hint-slide {
-  to {
-    translate: calc(32 * var(--u)) 0;
-  }
-}
-
 @media (hover: hover) and (pointer: fine) {
   /* Met de muis kun je de carrousel slepen */
   .work-grid {
@@ -360,14 +325,6 @@ button {
 
 .work-grid.is-dragging .card {
   cursor: grabbing;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  /* Minder beweging: het streepje staat stil in het midden */
-  .work-hint::after {
-    left: calc(16 * var(--u));
-    animation: none;
-  }
 }
 
 
@@ -918,10 +875,10 @@ body:has(.page--me) {
 
   /* Work: smallere kaarten met staande beelden.
      Is je scherm laag, dan wordt de kaart kleiner, zodat alles past zonder te scrollen.
-     Alles behalve het beeld: 204px (nav, titel, jaar, lijntje) plus de witruimte boven en onder.
+     Alles behalve het beeld: 178px (nav, titel, jaar, bolletjes) plus de witruimte boven en onder.
      Het beeld is 4:5, dus de breedte is 0.8 keer de hoogte. */
   .work-grid {
-    --card-width: min(78vw, (100svh - 204px - 2 * var(--content-top)) * 0.8);
+    --card-width: min(78vw, (100svh - 178px - 2 * var(--content-top)) * 0.8);
 
     gap: 16px;
   }
@@ -1108,10 +1065,10 @@ body:has(.page--me) {
     font-size: 16px;
   }
 
-  /* Work: liggende beelden (3:2). 190px is alles behalve het beeld:
-     nav, titel, bolletjes, hint en witruimte. */
+  /* Work: liggende beelden (3:2). 164px is alles behalve het beeld:
+     nav, titel, bolletjes en witruimte. */
   .work-grid {
-    --card-width: min(60vw, (100svh - 190px) * 1.5);
+    --card-width: min(60vw, (100svh - 164px) * 1.5);
 
     gap: 16px;
   }

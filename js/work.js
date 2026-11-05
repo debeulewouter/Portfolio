@@ -13,17 +13,16 @@
 //   - de kaart in het midden is groot, de buren worden kleiner en vager
 //     (dat doet de CSS zelf tijdens het scrollen, zie .card in style.css; dit script
 //     springt alleen bij als je browser dat nog niet kan);
-//   - de bolletjes tonen welk project in het midden staat;
-//   - de bolletjes en de pijltjestoetsen schuiven naar een ander project;
+//   - de bolletjes tonen welke kaart in het midden staat;
+//   - de bolletjes en de pijltjestoetsen schuiven naar een andere kaart;
 //   - met de muis kun je de carrousel slepen;
-//   - bij het laden schuiven de kaarten even op, en een hint toont dat je kunt vegen.
+//   - bij het laden schuiven de kaarten even op, zodat je ziet dat je kunt vegen.
 
 const grid = document.querySelector('.work-grid');
 const originals = [...grid.querySelectorAll('.card:not(.card--soon)')];
 const projectCount = originals.length;
 const soonCard = grid.querySelector('.card--soon');
 const dotsContainer = document.querySelector('.work-dots');
-const hint = document.querySelector('.work-hint');
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 // Kan de browser animaties aan het scrollen koppelen? Dan schaalt de CSS de kaarten,
@@ -35,6 +34,9 @@ const cssScales = CSS.supports('animation-timeline: view()');
 // Vanaf 3 projecten wel oneindig, en dan hoort de "Coming soon" kaart er niet meer bij.
 const loops = projectCount >= 3;
 if (loops && soonCard) soonCard.remove();
+
+// De kaarten die elk een eigen bolletje krijgen: de projecten en, als die er nog is, "Coming soon"
+const dotCards = [...grid.querySelectorAll('.card')];
 
 const COPIES = loops ? 2 : 0;           // kopieën van de hele rij, links en ook rechts
 const firstReal = projectCount * COPIES; // plaats van het eerste echte project in de rij
@@ -145,15 +147,16 @@ function recenter() {
 }
 
 
-// ---------- Bolletjes maken: één per project ----------
-// Eén project? Dan zijn bolletjes zinloos en laten we ze weg.
+// ---------- Bolletjes maken: één per kaart ----------
+// Het aantal volgt vanzelf uit de kaarten in work.html.
+// Maar één kaart? Dan zijn bolletjes zinloos en laten we ze weg.
 
-dotsContainer.hidden = projectCount < 2;
+dotsContainer.hidden = dotCards.length < 2;
 
-const dots = originals.map((card, i) => {
+const dots = dotCards.map((card, i) => {
   const dot = document.createElement('button');
   dot.className = 'work-dots__dot';
-  dot.setAttribute('aria-label', `Go to project ${i + 1}`);
+  dot.setAttribute('aria-label', `Go to ${card.querySelector('.card__title').textContent}`);
   dot.addEventListener('click', () => scrollToCard(firstReal + i));
   dotsContainer.appendChild(dot);
   return dot;
@@ -190,16 +193,12 @@ function update() {
     }
   }
 
-  // Kopie of echt: het bolletje van hetzelfde project gaat aan. Alleen als het verandert.
-  // (Op de "Coming soon" kaart blijft het laatste project aan.)
-  const dot = Math.min(activeIndex, firstReal + projectCount - 1) % projectCount;
+  // Kopie of echt: het bolletje van dezelfde kaart gaat aan. Alleen als het verandert.
+  const dot = activeIndex % dots.length;
   if (dot !== activeDot) {
     dots.forEach((element, i) => element.classList.toggle('is-active', i === dot));
     activeDot = dot;
   }
-
-  // Naar een andere kaart gegaan? Dan weet je hoe het werkt: de hint mag weg.
-  if (activeIndex !== firstReal) hint.classList.add('is-hidden');
 }
 
 // Maximaal één update per beeldje van het scherm
