@@ -123,6 +123,31 @@ button {
   opacity: 1;
 }
 
+/* Klik: het woord veert een klein beetje in, en bij het loslaten zacht terug.
+   De overgang naar de volgende pagina neemt die laatste beweging vanzelf over.
+   will-change laat de grafische kaart schalen: de letters verspringen dan niet per pixel. */
+@media (prefers-reduced-motion: no-preference) {
+  .nav a {
+    position: relative;
+    transition: opacity 0.2s ease, scale 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: scale;
+  }
+
+  .nav a:active {
+    scale: 0.94;
+    transition-duration: 0.2s, 0.12s;
+    transition-timing-function: ease, ease-out;
+  }
+
+  /* Onzichtbaar klikvlak, iets groter dan het woord. Zonder dit krimpt het woord onder je muis
+     vandaan als je op de rand klikt: dan laat je naast de link los en telt de klik niet. */
+  .nav a::after {
+    content: "";
+    position: absolute;
+    inset: -8%;
+  }
+}
+
 /* Home: grote nav in het midden van het scherm */
 .nav--home {
   flex: 1;
