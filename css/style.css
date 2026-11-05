@@ -860,13 +860,13 @@ body:has(.page--me) {
 ::view-transition-group(nav-work),
 ::view-transition-group(nav-me),
 ::view-transition-group(nav-contact) {
-  animation: none;
+  animation-name: none;   /* niet "animation: none": de woorden erven hiervan hun duur en vervagen dan niet */
 }
 
 html:has(.nav a:nth-child(1)[aria-current="page"])::view-transition-image-pair(nav-work),
 html:has(.nav a:nth-child(2)[aria-current="page"])::view-transition-image-pair(nav-me),
 html:has(.nav a:nth-child(3)[aria-current="page"])::view-transition-image-pair(nav-contact) {
-  animation: nav-release 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  animation: nav-release 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 @keyframes nav-release {
