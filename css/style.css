@@ -786,8 +786,11 @@ body:has(.page--me) {
   font-weight: 500;
 }
 
-.contact__socials a:hover {
-  text-decoration: underline;
+/* Alleen met een muis: op een touchscherm blijft :hover hangen na een tik */
+@media (hover: hover) {
+  .contact__socials a:hover {
+    text-decoration: underline;
+  }
 }
 
 .contact__meta {
