@@ -150,17 +150,22 @@ button {
   }
 }
 
-/* Home: grote nav in het midden van het scherm */
-.nav--home {
+/* Home: alleen het woord PORTFOLIO in het midden. Het staat even stil en vervaagt dan;
+   index.html gaat daarna door naar Work. Past altijd op één regel, ook op een smal scherm. */
+.intro {
   flex: 1;
-  align-content: center;
-  column-gap: calc(130 * var(--u));
-  padding-top: 0;
-  font-size: calc(40 * var(--u));
+  display: grid;
+  place-items: center;
+  font-size: min(calc(120 * var(--u)), 15svh, 13vw);
+  font-weight: 600;
+  line-height: 1;
+  animation: intro-out 0.6s ease 1s forwards;
 }
 
-.nav--home a {
-  opacity: 1;
+@keyframes intro-out {
+  to {
+    opacity: 0;
+  }
 }
 
 
@@ -844,6 +849,30 @@ body:has(.page--me) {
   }
 }
 
+/* Op een telefoon: de menuwoorden staan op elke pagina op dezelfde plek, dus hun vak hoeft niet
+   mee te bewegen. Zo'n vak rekent de browser beeldje voor beeldje uit, terwijl de nieuwe pagina nog
+   laadt; dat hapert op een telefoon. Alleen schalen en vervagen doet de grafische kaart zelf.
+   Het aangetikte woord (.is-pressed staat op 0.94) veert vanaf daar terug. */
+@media (hover: none) {
+  ::view-transition-group(nav-work),
+  ::view-transition-group(nav-me),
+  ::view-transition-group(nav-contact) {
+    animation: none;
+  }
+
+  html:has(.nav a:nth-child(1)[aria-current="page"])::view-transition-image-pair(nav-work),
+  html:has(.nav a:nth-child(2)[aria-current="page"])::view-transition-image-pair(nav-me),
+  html:has(.nav a:nth-child(3)[aria-current="page"])::view-transition-image-pair(nav-contact) {
+    animation: nav-release 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+}
+
+@keyframes nav-release {
+  from {
+    scale: 0.94;
+  }
+}
+
 /* Wie "minder beweging" aanzet, wisselt gewoon zonder animatie */
 @media (prefers-reduced-motion: reduce) {
   @view-transition {
@@ -888,16 +917,6 @@ body:has(.page--me) {
   .nav {
     column-gap: 32px;
     font-size: 16px;
-  }
-
-  /* Home op mobile: de woorden onder elkaar */
-  .nav--home {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 29px;
-    font-size: 32px;
   }
 
   /* Work: smallere kaarten met staande beelden.
