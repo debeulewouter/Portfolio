@@ -9,6 +9,16 @@
   <link rel="preload" href="fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="css/style.css?v=2026-11-06g">
 
+  <!-- Je eigen toestel niet meetellen: open één keer debeulewouter.com/?niet-tellen
+       (en /?wel-tellen om het terug te draaien). Dit staat vóór Umami, zodat dat bezoek ook niet telt. -->
+  <script>
+    if (location.search === '?niet-tellen') localStorage.setItem('umami.disabled', '1');
+    if (location.search === '?wel-tellen') localStorage.removeItem('umami.disabled');
+  </script>
+
+  <!-- Bezoekersstatistieken (Umami, zonder cookies). data-domains: alleen de echte site telt mee, niet je tests. -->
+  <script defer src="https://cloud.umami.is/script.js" data-website-id="9738d61e-05c8-4a8d-b611-049cfe5210c3" data-domains="debeulewouter.com"></script>
+
   <!-- Zonder JavaScript gaat de pagina ook door naar Work -->
   <noscript><meta http-equiv="refresh" content="2;url=work.html"><style>.intro { opacity: 1; }</style></noscript>
 </head>
