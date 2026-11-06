@@ -63,6 +63,7 @@ let dragged = false;       // echt gesleept? Dan telt het niet als klik.
 function makeClone(card, i) {
   const clone = card.cloneNode(true);
   clone.classList.add('card--clone');
+  clone.classList.remove('card--first');       // alleen de echte eerste kaart komt als eerste binnen
   clone.setAttribute('aria-hidden', 'true');   // schermlezers lezen elk project maar één keer
   clone.tabIndex = -1;                         // met Tab sla je de kopieën over
   clone.querySelector('.card__case')?.remove(); // de projectpagina leest alleen de echte kaarten
@@ -298,20 +299,44 @@ grid.addEventListener('dragstart', (event) => event.preventDefault());
 
 // ---------- Een duwtje bij het laden ----------
 // De kaarten schuiven even naar links en veren terug: zo zie je dat er meer is.
+// Dat gebeurt als laatste, zodra de kaarten stuk per stuk binnen zijn (piece-in in style.css).
+// Ben je zelf al begonnen met scrollen of klikken, dan is het duwtje niet meer nodig.
 // Alleen de kaarten die je ziet, de rest staat toch buiten beeld.
 
-if (!reduceMotion) {
-  allCards.slice(Math.max(0, activeIndex - 2), activeIndex + 3).forEach((card) => {
-    card.animate(
-      [
-        { translate: '0 0' },
-        { translate: '-80px 0', offset: 0.4 },
-        { translate: '0 0' },
-      ],
-      { duration: 1400, delay: 600, easing: 'cubic-bezier(0.65, 0, 0.35, 1)' }
-    );
-  });
+function revealAnimations() {
+  return document.getAnimations().filter((animation) => animation.animationName === 'piece-in');
 }
+
+if (!reduceMotion) {
+  let userStarted = false;
+  ['pointerdown', 'wheel', 'touchstart', 'keydown'].forEach((type) => {
+    window.addEventListener(type, () => { userStarted = true; }, { once: true, passive: true });
+  });
+
+  const cardsReveal = revealAnimations().filter((animation) => !animation.effect.target.matches('.work-nav'));
+
+  Promise.all(cardsReveal.map((animation) => animation.finished))
+    .then(() => {
+      if (userStarted) return;
+      allCards.slice(Math.max(0, activeIndex - 2), activeIndex + 3).forEach((card) => {
+        card.animate(
+          [
+            { translate: '0 0' },
+            { translate: '-80px 0', offset: 0.4 },
+            { translate: '0 0' },
+          ],
+          { duration: 1400, easing: 'cubic-bezier(0.65, 0, 0.35, 1)' }
+        );
+      });
+    })
+    .catch(() => {});
+}
+
+// Klik je op een project terwijl de kaarten nog binnenkomen? Dan staat alles meteen op zijn plek.
+// Zo vliegt het beeld vanaf de juiste plek en zie je het tijdens de vlucht niet dubbel.
+grid.addEventListener('click', () => {
+  revealAnimations().forEach((animation) => animation.finish());
+}, true);
 
 
 // ---------- Na de projectpagina ----------

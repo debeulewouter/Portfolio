@@ -210,6 +210,11 @@ button {
   margin-top: auto;
   margin-inline: calc(-1 * var(--margin));
   padding-inline: calc((100vw - var(--card-width)) / 2);
+  /* Ruimte onderaan voor de kaarten die binnenkomen (piece-in), anders knipt de rij hun tekst af.
+     De negatieve marge haalt die ruimte weer weg: alles blijft op dezelfde plek staan.
+     Iets meer dan de 16px van de animatie: Firefox rondt soms een pixel af naar boven. */
+  padding-bottom: 20px;
+  margin-bottom: -20px;
   overflow-x: auto;
   overscroll-behavior-x: contain;
   scroll-snap-type: x mandatory;
@@ -702,6 +707,7 @@ body:has(.page--me) {
   max-height: 100%;
   aspect-ratio: 816 / 787;
   object-fit: cover;   /* vult het kader, wat te veel is valt aan de randen weg */
+  object-position: 50% 10%;   /* snijden we bij, dan vooral onderaan: je hoofd blijft altijd in beeld */
 }
 
 .me__text {
@@ -882,6 +888,72 @@ html:has(.nav a:nth-child(3)[aria-current="page"])::view-transition-image-pair(n
 @media (prefers-reduced-motion: reduce) {
   @view-transition {
     navigation: none;
+  }
+}
+
+/* Work, Me en Contact: de stukken komen één voor één in beeld.
+   --step is de plaats in de rij: elke stap start 0.3s later dan de vorige.
+   De eerste start pas na 0.6s, als de overgang tussen de pagina's helemaal klaar is. Bewegen ze tijdens
+   die overgang, dan flikkert het op het moment dat de browser naar de echte pagina wisselt.
+   "backwards" houdt een stuk onzichtbaar tot zijn beurt; na afloop blijft er niets van de animatie over. */
+@media (prefers-reduced-motion: no-preference) {
+  .me__photo,
+  .me__title,
+  .me__intro,
+  .contact__title,
+  .contact__mail,
+  .contact__socials,
+  .contact__meta,
+  .card__image,
+  .card__title,
+  .card__year,
+  .card__meta,
+  .work-nav {
+    animation: piece-in 1.2s cubic-bezier(0.4, 0, 0.2, 1) backwards;   /* zachte start, geen plotse sprong */
+    animation-delay: calc(0.6s + var(--step, 0) * 0.3s);
+  }
+
+  /* Work: de kaart in het midden stuk voor stuk (beeld, titel en jaar, soort project),
+     dan de kaarten ernaast, dan de bolletjes. De .card zelf animeert niet: die heeft al card-focus.
+     Daarna geeft js/work.js de kaarten nog een duwtje. */
+  .card {
+    --step: 3;
+  }
+
+  .card--first .card__image {
+    --step: 0;
+  }
+
+  .me__title,
+  .contact__mail,
+  .card--first .card__title,
+  .card--first .card__year {
+    --step: 1;
+  }
+
+  .me__intro,
+  .contact__socials,
+  .card--first .card__meta {
+    --step: 2;
+  }
+
+  .contact__socials + .contact__meta {
+    --step: 3;
+  }
+
+  .work-nav {
+    --step: 4;
+  }
+
+  .contact__meta + .contact__meta {
+    --step: 4;
+  }
+}
+
+@keyframes piece-in {
+  from {
+    opacity: 0;
+    translate: 0 16px;
   }
 }
 
@@ -1083,8 +1155,10 @@ html:has(.nav a:nth-child(3)[aria-current="page"])::view-transition-image-pair(n
     line-height: 1.05;
   }
 
+  /* Het mailadres is ongeveer 14.3 keer zo breed als de lettergrootte.
+     Op een smalle telefoon wordt de letter net zo klein dat het binnen de marges past. */
   .contact__mail {
-    font-size: 22px;
+    font-size: min(22px, (100vw - 2 * var(--margin)) / 14.3);
   }
 
   .contact__socials {
