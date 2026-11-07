@@ -559,21 +559,25 @@ button {
 }
 
 .project__hero img,
-.project__hero video,
-.project__hero canvas {
+.project__hero video {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-/* De kopie van het beeld die bij openen en sluiten vliegt (zie js/project.js) */
+/* Het beeld dat bij openen en sluiten vliegt: de zichtbare rechthoek met het beeld erin (zie js/project.js) */
 .project-ghost {
   position: fixed;
   z-index: 11;
-  margin: 0;
+  overflow: hidden;
   pointer-events: none;
   transform-origin: 0 0;
+}
+
+.project-ghost__image {
+  width: 100%;
+  height: 100%;
 }
 
 /* Rechterkolom: titel, verhaal en info, samen verticaal in het midden naast het beeld.
@@ -891,7 +895,7 @@ html:has(.nav a:nth-child(3)[aria-current="page"])::view-transition-image-pair(n
   }
 }
 
-/* Work, Me en Contact: de stukken komen één voor één in beeld.
+/* Work, Me, Contact en de projectpagina: de stukken komen één voor één in beeld.
    --step is de plaats in de rij: elke stap start 0.3s later dan de vorige.
    De eerste start pas na 0.6s, als de overgang tussen de pagina's helemaal klaar is. Bewegen ze tijdens
    die overgang, dan flikkert het op het moment dat de browser naar de echte pagina wisselt.
@@ -908,7 +912,11 @@ html:has(.nav a:nth-child(3)[aria-current="page"])::view-transition-image-pair(n
   .card__title,
   .card__year,
   .card__meta,
-  .work-nav {
+  .work-nav,
+  .is-entering .project__counter,
+  .is-entering .project__title,
+  .is-entering .case__story,
+  .is-entering .case__info {
     animation: piece-in 1.2s cubic-bezier(0.4, 0, 0.2, 1) backwards;   /* zachte start, geen plotse sprong */
     animation-delay: calc(0.6s + var(--step, 0) * 0.3s);
   }
@@ -947,6 +955,20 @@ html:has(.nav a:nth-child(3)[aria-current="page"])::view-transition-image-pair(n
 
   .contact__meta + .contact__meta {
     --step: 4;
+  }
+
+  /* Projectpagina: het beeld vliegt eerst naar zijn plek (0.7s, zie js/project.js; na 0.6s is het er bijna),
+     daarna komen teller, titel, verhaal en info. js/project.js zet .is-entering bij elke keer openen. */
+  .is-entering .project__title {
+    --step: 1;
+  }
+
+  .is-entering .case__story {
+    --step: 2;
+  }
+
+  .is-entering .case__info {
+    --step: 3;
   }
 }
 

@@ -26,10 +26,12 @@ const viewIntro = view.querySelector('.project__intro');
 const phone = window.matchMedia('(max-width: 768px) and (not ((max-height: 560px) and (orientation: landscape))), (max-width: 1200px) and (orientation: portrait)');
 
 const lessMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)';   // snel vertrekken, zacht landen
+const EASE = 'cubic-bezier(0.4, 0, 0.2, 1)';   // zacht vertrekken, zacht landen (dezelfde curve als piece-in)
+const FLIGHT = 700;   // zo lang vliegt het beeld tussen de kaart en de projectpagina, in milliseconden
 
 let currentProject = 0;   // welk project open staat
-let landHero = null;      // ruimt de vlucht van het beeld op (zie flyHero)
+let landHero = null;      // zet een vliegend beeld op zijn plek (zie flyHero)
+let openedFrom = null;    // uit welke kaart de video van het open project komt
 
 
 // ---------- Hulpfuncties ----------
@@ -55,42 +57,6 @@ function imageOnScreen(i) {
 }
 
 
-// ---------- Video's ----------
-
-// De video van de kaart speelt op de grote plek verder vanaf hetzelfde moment
-function startHeroVideo(cardImage) {
-  const heroVideo = viewHero.querySelector('video');
-  if (!heroVideo) return;
-
-  document.querySelectorAll('.card__image video').forEach((video) => video.pause());
-
-  heroVideo.currentTime = cardImage.querySelector('video').currentTime;
-  heroVideo.muted = true;
-  if (!lessMotion) heroVideo.play().catch(() => {});
-}
-
-// In de vliegende kopie vervangen we de video door één stilstaand beeld van het huidige moment.
-// Een stilstaand beeld vliegt vloeiend en is er meteen, een tweede video moet eerst laden.
-function freezeVideo(ghost, liveVideo) {
-  const video = ghost.querySelector('video');
-  if (!video) return;
-
-  // Nog niets geladen? Dan vliegt de poster.
-  if (!liveVideo || liveVideo.readyState < 2) {
-    const poster = new Image();
-    poster.src = video.poster;
-    video.replaceWith(poster);
-    return;
-  }
-
-  const frame = document.createElement('canvas');
-  frame.width = liveVideo.videoWidth;
-  frame.height = liveVideo.videoHeight;
-  frame.getContext('2d').drawImage(liveVideo, 0, 0);
-  video.replaceWith(frame);
-}
-
-
 // ---------- De pagina vullen ----------
 
 function fill(i) {
@@ -102,15 +68,16 @@ function fill(i) {
   caseContent.innerHTML = card.querySelector('.card__case').innerHTML;
   view.setAttribute('aria-label', card.querySelector('.card__title').textContent);
 
-  // Het grote beeld: een kopie van wat in de kaart staat (foto, of de grijze placeholder)
-  const imageContent = [...card.querySelector('.card__image').childNodes];
-  viewHero.replaceChildren(...imageContent.map((node) => node.cloneNode(true)));
-  viewHero.classList.toggle('placeholder', card.querySelector('.card__image').classList.contains('placeholder'));
-  const heroVideo = viewHero.querySelector('video');
-  const hasVideo = Boolean(heroVideo);
+  // Het grote beeld: een kopie van wat in de kaart staat (foto, of de grijze placeholder).
+  // Een video kopiëren we niet: de video van de kaart zelf verhuist hierheen (zie openProject).
+  const cardImage = card.querySelector('.card__image');
+  const cardVideo = cardImage.querySelector('video');
+  const hasVideo = Boolean(cardVideo);
+  viewHero.replaceChildren(...(hasVideo ? [] : [...cardImage.childNodes].map((node) => node.cloneNode(true))));
+  viewHero.classList.toggle('placeholder', cardImage.classList.contains('placeholder'));
   viewHero.classList.toggle('project__hero--video', hasVideo);
   // Het vak krijgt de vorm van de video (uit width en height in work.html), zo snijden we niets weg
-  const ratio = hasVideo ? heroVideo.width / heroVideo.height : 1;
+  const ratio = hasVideo ? cardVideo.width / cardVideo.height : 1;
   viewIntro.style.setProperty('--hero-ratio', ratio);
   viewIntro.classList.toggle('project__intro--wide', ratio > 1.2);
   // Een video kun je aanklikken om hem groot te bekijken (zie "Video groot bekijken")
@@ -133,83 +100,83 @@ function fill(i) {
 
 // ---------- Animaties ----------
 
-// Een kopie van het grote beeld vliegt van de ene plek naar de andere.
+// Het beeld vliegt van de ene plek naar de andere. Een video vliegt zelf mee en blijft spelen:
+// er is maar één video per kaart, die verhuist van de kaart naar het project en terug.
+// Zo staat hij nooit stil en hoeft hij nergens op dezelfde tijd gezet te worden.
 //
-// De kopie heeft altijd de maat van het grote beeld. Op de kleine plek schalen we hem kleiner
-// (even veel in de breedte als in de hoogte, zo wordt een foto nooit uitgerekt)
-// en snijden we hem bij tot de vorm van de kaart. Schalen en bijsnijden kan de grafische kaart
-// doen, zonder dat je toestel elk beeldje de pagina opnieuw moet uitrekenen: vloeiend, ook op je gsm.
+// Twee lagen die alleen schalen, zodat de grafische kaart de hele vlucht kan doen, los van de pagina:
+//   - .project-ghost is de rechthoek die je ziet en snijdt af wat erbuiten valt;
+//   - .project-ghost__image zit erin en heeft de maat van het grote beeld. Hij schaalt in de andere
+//     richting terug, zodat het beeld samen nooit uitgerekt wordt en de rechthoek altijd helemaal vult.
 //
 // cardImage is het beeld in de carrousel. Dat verbergen we tijdens de vlucht,
 // anders zie je het beeld twee keer: de kaart en de kopie die erheen vliegt.
-function flyHero(from, to, cardImage) {
-  // Vliegt er nog een kopie (heel snel open en weer dicht)? Die ruimen we eerst op.
-  if (landHero) landHero();
-
-  // De kopie krijgt de maat van het grote beeld: alleen daar staat het hele beeld in.
+// home is waar de video na de landing woont: het grote beeld of de kaart.
+function flyHero(from, to, cardImage, video, home) {
+  // De lagen krijgen de maat van het grote beeld: alleen daar staat het hele beeld in.
   // Bij openen is dat de bestemming, bij sluiten het vertrekpunt.
-  const big = view.classList.contains('is-open') ? to : from;
+  const opening = view.classList.contains('is-open');
+  const big = opening ? to : from;
 
-  const ghost = viewHero.cloneNode(true);
-  ghost.classList.add('project-ghost');
-  // Het beeld dat nu in zicht is: bij openen de kaart, bij sluiten het grote beeld
-  freezeVideo(ghost, (from === big ? viewHero : cardImage).querySelector('video'));
+  const ghost = document.createElement('div');
+  ghost.className = 'project-ghost';
   Object.assign(ghost.style, {
     top: `${big.top}px`,
     left: `${big.left}px`,
     width: `${big.width}px`,
     height: `${big.height}px`,
   });
-  document.body.appendChild(ghost);
+  // Een foto of placeholder kopiëren we, een video verhuist hieronder zelf mee
+  const image = viewHero.cloneNode(!video);
+  image.classList.add('project-ghost__image');
+  ghost.append(image);
+  document.body.append(ghost);
+  if (video) {
+    image.append(video);   // verhuizen pauzeert een video, dus meteen weer starten
+    keepPlaying(video);
+  }
   // Met opacity en niet met visibility: Safari tekent een video die start terwijl hij
   // visibility: hidden heeft, daarna maar half.
   viewHero.style.opacity = '0';
   cardImage.style.opacity = '0';
 
-  // Hoe de kopie eruitziet op plek rect
-  const place = (rect) => {
-    if (rect === big) return { transform: 'none', clipPath: 'inset(0px 0px)' };
+  // De vlucht in 30 kleine stukjes: de zichtbare rechthoek gaat in een rechte lijn van de ene plek naar
+  // de andere, en op elk stukje vult het beeld die rechthoek precies.
+  const mix = (a, b, part) => a + (b - a) * part;
+  const ghostSteps = [];
+  const imageSteps = [];
+  for (let k = 0; k <= 30; k++) {
+    const left = mix(from.left, to.left, k / 30);
+    const top = mix(from.top, to.top, k / 30);
+    const scaleX = mix(from.width, to.width, k / 30) / big.width;
+    const scaleY = mix(from.height, to.height, k / 30) / big.height;
+    const cover = Math.max(scaleX, scaleY);   // zo groot dat de rechthoek helemaal gevuld is
 
-    // Zo klein dat de kaart helemaal gevuld is, en precies op het midden van de kaart
-    const scale = Math.max(rect.width / big.width, rect.height / big.height);
-    const x = rect.left + rect.width / 2 - (big.left + (big.width * scale) / 2);
-    const y = rect.top + rect.height / 2 - (big.top + (big.height * scale) / 2);
+    ghostSteps.push({ transform: `translate(${left - big.left}px, ${top - big.top}px) scale(${scaleX}, ${scaleY})` });
+    imageSteps.push({ transform: `scale(${cover / scaleX}, ${cover / scaleY})` });
+  }
 
-    // Wat buiten de kaart valt, snijden we weg
-    const cutX = (big.width - rect.width / scale) / 2;
-    const cutY = (big.height - rect.height / scale) / 2;
+  const timing = { duration: FLIGHT, easing: EASE, fill: 'forwards' };
+  const flight = ghost.animate(ghostSteps, timing);
+  image.animate(imageSteps, timing);
+  // Een kaart opzij is vervaagd: het beeld wordt tijdens de vlucht vol, niet in één klap
+  if (opening) {
+    ghost.animate({ opacity: [getComputedStyle(cardImage.closest('.card')).opacity, 1] }, timing);
+  }
 
-    return {
-      transform: `translate(${x}px, ${y}px) scale(${scale})`,
-      clipPath: `inset(${cutY}px ${cutX}px)`,
-    };
-  };
-
-  const flight = ghost.animate([place(from), place(to)], { duration: 600, easing: EASE, fill: 'forwards' });
-
-  // Geland: kopie weg, de echte beelden weer zichtbaar
+  // Geland (of onderbroken door een nieuwe klik): de video naar zijn plek, de lagen weg
   landHero = () => {
-    flight.cancel();
+    flight.cancel();   // een onderbroken vlucht mag niet later alsnog landen
+    if (video) {
+      home.append(video);
+      keepPlaying(video);
+    }
     ghost.remove();
     viewHero.style.opacity = '';
     cardImage.style.opacity = '';
     landHero = null;
   };
   flight.onfinish = landHero;
-}
-
-// Teller, titel en tekst schuiven na elkaar omhoog in beeld
-function reveal() {
-  ['.project__counter', '.project__title', '.project__case'].forEach((selector, k) => {
-    viewPage.querySelector(selector).animate(
-      [
-        { opacity: 0, translate: '0 24px' },
-        { opacity: 1, translate: '0 0' },
-      ],
-      // backwards: tijdens het wachten al onzichtbaar
-      { duration: 600, delay: 100 + k * 60, easing: EASE, fill: 'backwards' }
-    );
-  });
 }
 
 
@@ -277,33 +244,63 @@ window.addEventListener('resize', () => {
 
 // ---------- Openen en sluiten ----------
 
+// Waar het beeld terechtkomt als de kaart op ware grootte staat. Stond het project opzij in de carrousel,
+// dan schuift het bij het sluiten naar het midden, maar de browser maakt de kaart (card-focus in style.css)
+// pas een beeldje later groot. Meten we gewoon, dan vliegt het beeld naar de kleine maat en springt het daarna.
+function restingRect(cardElement, image) {
+  const cardRect = cardElement.getBoundingClientRect();
+  const imageRect = image.getBoundingClientRect();
+  const scale = cardRect.width / cardElement.offsetWidth;
+  const centerX = cardRect.left + cardRect.width / 2;
+  const centerY = cardRect.top + cardRect.height / 2;
+
+  return {
+    left: centerX + (imageRect.left - centerX) / scale,
+    top: centerY + (imageRect.top - centerY) / scale,
+    width: imageRect.width / scale,
+    height: imageRect.height / scale,
+  };
+}
+
 function openProject(i) {
+  // Vliegt het beeld nog (heel snel open en weer dicht)? Dan eerst op zijn plek zetten.
+  if (landHero) landHero();
+
   currentProject = i;
+  // De vorige keer weghalen: zo start de animatie hieronder opnieuw (fitText ververst de pagina tussendoor).
+  // Pas daarna weer aanzetten: tijdens het meten mag de tekst niet verschoven staan.
+  view.classList.remove('is-entering');
   fill(i);
   fitText();
 
   const cardImage = imageOnScreen(i);
   const from = cardImage.getBoundingClientRect();
-  startHeroVideo(cardImage);
+  const video = cardImage.querySelector('video');
+  openedFrom = cardImage;
+  // De andere video's hoeven niet te spelen achter de projectpagina
+  document.querySelectorAll('.card__image video').forEach((other) => {
+    if (other !== video) other.pause();
+  });
   view.classList.add('is-open');
   document.body.classList.add('no-scroll');
   viewClose.focus({ preventScroll: true });
 
-  if (lessMotion) return;
-  flyHero(from, viewHero.getBoundingClientRect(), cardImage);
-  reveal();
+  if (lessMotion) {
+    if (video) viewHero.append(video);
+    return;
+  }
+  flyHero(from, viewHero.getBoundingClientRect(), cardImage, video, viewHero);
+  // Teller, titel, verhaal en info komen stuk per stuk binnen, zoals op Me en Contact (piece-in in style.css)
+  view.classList.add('is-entering');
 }
 
 function closeProject() {
+  if (landHero) landHero();
+  // Krimpt de grote video nog terug? Dan staat hij meteen weer in het project.
+  if (zoomAnimation) zoomAnimation.onfinish();
+
   const heroRect = viewHero.getBoundingClientRect();
-  const heroVideo = viewHero.querySelector('video');
-  if (heroVideo) {
-    heroVideo.pause();
-    // De kaart speelt verder waar het grote beeld stopte
-    document.querySelectorAll('.card__image video').forEach((video) => {
-      if (video.getAttribute('src') === heroVideo.getAttribute('src')) video.currentTime = heroVideo.currentTime;
-    });
-  }
+  const video = viewHero.querySelector('video');
 
   view.classList.remove('is-open');
   document.body.classList.remove('no-scroll');
@@ -312,11 +309,18 @@ function closeProject() {
   document.dispatchEvent(new CustomEvent('project:close', { detail: { index: currentProject } }));
   projectCards[currentProject].focus({ preventScroll: true });
 
+  // Geopend vanaf een kopie in de carrousel? Dan keert de video terug naar de echte kaart,
+  // en krijgt de kopie de video die daar stond.
+  const card = projectCards[currentProject].querySelector('.card__image');
+  if (video && openedFrom !== card) openedFrom.append(card.querySelector('video'));
+
   // Staat het grote beeld nog (deels) in beeld? Dan krimpt het terug naar zijn kaart.
   // Ben je ver naar beneden gescrold, dan verdwijnt de pagina gewoon.
   if (!lessMotion && heroRect.bottom > 0) {
-    const card = projectCards[currentProject].querySelector('.card__image');
-    flyHero(heroRect, card.getBoundingClientRect(), card);
+    flyHero(heroRect, restingRect(projectCards[currentProject], card), card, video, card);
+  } else if (video) {
+    card.append(video);
+    keepPlaying(video);
   }
 }
 
