@@ -10,8 +10,9 @@
 // Let op: work.js en dit script delen dezelfde namen, daarom heten de variabelen
 // hier anders (projectCards in plaats van cards, enzovoort).
 
-// Alleen de echte projecten, niet de kopieën van js/work.js en niet de "Coming soon" kaart
-const projectCards = [...document.querySelectorAll('.card:not(.card--clone):not(.card--soon)')];
+// Alle projecten, niet de "Coming soon" kaart. In work.html staan ze van oud naar nieuw.
+// De teller telt mee: het oudste is 01, het nieuwste heeft het hoogste nummer.
+const projectCards = [...document.querySelectorAll('.card:not(.card--soon)')];
 const projectTotal = projectCards.length;
 
 const view = document.querySelector('.project');
@@ -31,7 +32,6 @@ const FLIGHT = 700;   // zo lang vliegt het beeld tussen de kaart en de projectp
 
 let currentProject = 0;   // welk project open staat
 let landHero = null;      // zet een vliegend beeld op zijn plek (zie flyHero)
-let openedFrom = null;    // uit welke kaart de video van het open project komt
 
 
 // ---------- Hulpfuncties ----------
@@ -39,21 +39,6 @@ let openedFrom = null;    // uit welke kaart de video van het open project komt
 // 1 wordt "01"
 function pad(number) {
   return String(number).padStart(2, '0');
-}
-
-// Het beeld van project i dat je nu ziet in de carrousel.
-// Er staan kopieën van elk project; we kiezen degene die het dichtst bij het midden staat.
-function imageOnScreen(i) {
-  const middle = window.innerWidth / 2;
-  const distance = (image) => {
-    const rect = image.getBoundingClientRect();
-    return Math.abs(rect.left + rect.width / 2 - middle);
-  };
-
-  return [...document.querySelectorAll('.work-grid .card:not(.card--soon)')]
-    .filter((card, k) => k % projectTotal === i)
-    .map((card) => card.querySelector('.card__image'))
-    .sort((a, b) => distance(a) - distance(b))[0];
 }
 
 
@@ -273,10 +258,9 @@ function openProject(i) {
   fill(i);
   fitText();
 
-  const cardImage = imageOnScreen(i);
+  const cardImage = projectCards[i].querySelector('.card__image');
   const from = cardImage.getBoundingClientRect();
   const video = cardImage.querySelector('video');
-  openedFrom = cardImage;
   // De andere video's hoeven niet te spelen achter de projectpagina
   document.querySelectorAll('.card__image video').forEach((other) => {
     if (other !== video) other.pause();
@@ -309,10 +293,7 @@ function closeProject() {
   document.dispatchEvent(new CustomEvent('project:close', { detail: { index: currentProject } }));
   projectCards[currentProject].focus({ preventScroll: true });
 
-  // Geopend vanaf een kopie in de carrousel? Dan keert de video terug naar de echte kaart,
-  // en krijgt de kopie de video die daar stond.
   const card = projectCards[currentProject].querySelector('.card__image');
-  if (video && openedFrom !== card) openedFrom.append(card.querySelector('video'));
 
   // Staat het grote beeld nog (deels) in beeld? Dan krimpt het terug naar zijn kaart.
   // Ben je ver naar beneden gescrold, dan verdwijnt de pagina gewoon.

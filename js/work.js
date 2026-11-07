@@ -1,13 +1,11 @@
-// Work: de projecten als oneindige carrousel, op desktop en mobile.
+// Work: de projecten als carrousel, op desktop en mobile.
 //
 // Het scrollen zelf doet de browser (scroll-snap in de CSS). Dat voelt het meest natuurlijk,
 // met je trackpad op een laptop en met je vinger op een telefoon.
 //
-// Oneindig (vanaf 3 projecten): vóór en na de echte projecten zetten we twee kopieën van alle projecten.
-// Zo staat links van het eerste project altijd het laatste, en kom je ook met een
-// harde veeg nooit aan het einde van de rij. Stopt het scrollen op een kopie,
-// dan springen we ongemerkt naar dezelfde kaart in het midden. Die ziet er precies
-// hetzelfde uit, dus je merkt de sprong niet.
+// De volgorde komt uit work.html: van oud naar nieuw, met "Coming soon" als laatste.
+// Een nieuw project zet je dus vlak boven "Coming soon". De pagina start op het nieuwste project:
+// oudere projecten staan links ervan, "Coming soon" rechts.
 //
 // Verder doet dit script:
 //   - de kaart in het midden is groot, de buren worden kleiner en vager
@@ -19,9 +17,9 @@
 //   - bij het laden schuiven de kaarten even op, zodat je ziet dat je kunt vegen.
 
 const grid = document.querySelector('.work-grid');
-const originals = [...grid.querySelectorAll('.card:not(.card--soon)')];
-const projectCount = originals.length;
-const soonCard = grid.querySelector('.card--soon');
+// Alles wat in de rij staat, "Coming soon" inbegrepen
+const allCards = [...grid.querySelectorAll('.card')];
+const projects = allCards.filter((card) => !card.matches('.card--soon'));
 const dotsContainer = document.querySelector('.work-dots');
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -29,21 +27,11 @@ const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').match
 // buiten JavaScript om. Dat blijft vloeiend, ook als je heel snel scrolt.
 const cssScales = CSS.supports('animation-timeline: view()');
 
-// Met 1 of 2 projecten zou je steeds dezelfde kaarten zien terugkomen.
-// Dan geen oneindige rij, maar de projecten met de "Coming soon" kaart erachter.
-// Vanaf 3 projecten wel oneindig, en dan hoort de "Coming soon" kaart er niet meer bij.
-const loops = projectCount >= 3;
-if (loops && soonCard) soonCard.remove();
+// Het nieuwste project komt als eerste binnen (zie .card--first in style.css)
+projects.at(-1)?.classList.add('card--first');
 
-// De kaarten die elk een eigen bolletje krijgen: de projecten en, als die er nog is, "Coming soon"
-const dotCards = [...grid.querySelectorAll('.card')];
-
-const COPIES = loops ? 2 : 0;           // kopieën van de hele rij, links en ook rechts
-const firstReal = projectCount * COPIES; // plaats van het eerste echte project in de rij
-
-let activeIndex = firstReal;  // welke kaart nu in het midden staat
+let activeIndex = projects.length - 1;  // welke kaart nu in het midden staat: bij het laden het nieuwste project
 let updateFrame = null;
-let settleTimer = null;
 
 // Posities van de kaarten. Die veranderen alleen als het venster van grootte verandert,
 // dus we meten ze één keer in plaats van bij elk beeldje.
@@ -58,32 +46,6 @@ let dragStartIndex = 0;
 let dragged = false;       // echt gesleept? Dan telt het niet als klik.
 
 
-// ---------- Kopieën maken ----------
-
-function makeClone(card, i) {
-  const clone = card.cloneNode(true);
-  clone.classList.add('card--clone');
-  clone.classList.remove('card--first');       // alleen de echte eerste kaart komt als eerste binnen
-  clone.setAttribute('aria-hidden', 'true');   // schermlezers lezen elk project maar één keer
-  clone.tabIndex = -1;                         // met Tab sla je de kopieën over
-  clone.querySelector('.card__case')?.remove(); // de projectpagina leest alleen de echte kaarten
-
-  // Klik op een kopie: open het echte project
-  clone.addEventListener('click', (event) => {
-    event.preventDefault();
-    originals[i].click();
-  });
-  return clone;
-}
-
-for (let copy = 0; copy < COPIES; copy++) {
-  originals.forEach((card, i) => grid.insertBefore(makeClone(card, i), originals[0]));
-  originals.forEach((card, i) => grid.appendChild(makeClone(card, i)));
-}
-
-// Alle kaarten op een rij: kopieën, echte projecten, kopieën (of: projecten en "Coming soon")
-const allCards = [...grid.querySelectorAll('.card')];
-
 function measure() {
   cardCenters = allCards.map((card) => card.offsetLeft + card.offsetWidth / 2);
   cardWidth = allCards[0].offsetWidth;
@@ -93,16 +55,9 @@ function measure() {
 
 // ---------- Video's in de kaarten ----------
 // Een video speelt alleen als je hem ziet, en niet achter een open projectpagina.
-// Zo laden en draaien de kopieën niet voor niets.
-
-const lastPlayed = new Map();   // per videobestand: welke kopie speelde het laatst
+// Zo laden en draaien de andere video's niet voor niets.
 
 function playCardVideo(video) {
-  // Dezelfde tijd als de kopie die hiervoor speelde, zo zie je de sprong in de rij niet
-  const previous = lastPlayed.get(video.getAttribute('src'));
-  if (previous && previous !== video) video.currentTime = previous.currentTime;
-  lastPlayed.set(video.getAttribute('src'), video);
-
   video.muted = true;
   video.play().catch(() => {});   // mag niet afspelen? Dan blijft de stilstaande poster staan
 }
@@ -135,30 +90,17 @@ function scrollToCard(i) {
   card.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
 }
 
-// Staan we op een kopie? Spring dan naar dezelfde kaart tussen de echte projecten.
-// Niet tijdens het slepen: dan zou de kaart onder je muis wegspringen.
-function recenter() {
-  if (!loops || dragStartX !== null) return;
-
-  const real = firstReal + (activeIndex % projectCount);
-  if (real === activeIndex) return;
-
-  activeIndex = real;
-  centerOn(activeIndex);
-}
-
-
 // ---------- Bolletjes maken: één per kaart ----------
 // Het aantal volgt vanzelf uit de kaarten in work.html.
 // Maar één kaart? Dan zijn bolletjes zinloos en laten we ze weg.
 
-dotsContainer.hidden = dotCards.length < 2;
+dotsContainer.hidden = allCards.length < 2;
 
-const dots = dotCards.map((card, i) => {
+const dots = allCards.map((card, i) => {
   const dot = document.createElement('button');
   dot.className = 'work-dots__dot';
   dot.setAttribute('aria-label', `Go to ${card.querySelector('.card__title').textContent}`);
-  dot.addEventListener('click', () => scrollToCard(firstReal + i));
+  dot.addEventListener('click', () => scrollToCard(i));
   dotsContainer.appendChild(dot);
   return dot;
 });
@@ -194,11 +136,10 @@ function update() {
     }
   }
 
-  // Kopie of echt: het bolletje van dezelfde kaart gaat aan. Alleen als het verandert.
-  const dot = activeIndex % dots.length;
-  if (dot !== activeDot) {
-    dots.forEach((element, i) => element.classList.toggle('is-active', i === dot));
-    activeDot = dot;
+  // Het bolletje van de kaart in het midden gaat aan. Alleen als het verandert.
+  if (activeIndex !== activeDot) {
+    dots.forEach((element, i) => element.classList.toggle('is-active', i === activeIndex));
+    activeDot = activeIndex;
   }
 }
 
@@ -208,13 +149,7 @@ function requestUpdate() {
   updateFrame = requestAnimationFrame(update);
 }
 
-grid.addEventListener('scroll', () => {
-  requestUpdate();
-
-  // Even geen beweging meer? Dan is het scrollen klaar en kunnen we terugspringen.
-  clearTimeout(settleTimer);
-  settleTimer = setTimeout(recenter, 150);
-}, { passive: true });
+grid.addEventListener('scroll', requestUpdate, { passive: true });
 
 window.addEventListener('resize', () => {
   measure();
@@ -222,7 +157,7 @@ window.addEventListener('resize', () => {
   requestUpdate();
 });
 
-// Start op het eerste echte project
+// Start op het nieuwste project
 measure();
 centerOn(activeIndex);
 update();
@@ -344,7 +279,7 @@ grid.addEventListener('click', () => {
 // De projectpagina vertelt bij het sluiten welk project open stond.
 // Dat project zetten we in het midden van de carrousel.
 document.addEventListener('project:close', (event) => {
-  activeIndex = firstReal + event.detail.index;
+  activeIndex = event.detail.index;
   centerOn(activeIndex);
   update();
 
