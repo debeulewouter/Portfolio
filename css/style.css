@@ -922,8 +922,7 @@ html:has(.nav a:nth-child(3)[aria-current="page"])::view-transition-image-pair(n
   }
 
   /* Work: de kaart in het midden stuk voor stuk (beeld, titel en jaar, soort project),
-     dan de kaarten ernaast, dan de bolletjes. De .card zelf animeert niet: die heeft al card-focus.
-     Daarna geeft js/work.js de kaarten nog een duwtje. */
+     dan de kaarten ernaast, dan de bolletjes. De .card zelf animeert niet: die heeft al card-focus. */
   .card {
     --step: 3;
   }

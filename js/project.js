@@ -135,7 +135,9 @@ function flyHero(from, to, cardImage, video, home) {
     const top = mix(from.top, to.top, k / 30);
     const scaleX = mix(from.width, to.width, k / 30) / big.width;
     const scaleY = mix(from.height, to.height, k / 30) / big.height;
-    const cover = Math.max(scaleX, scaleY);   // zo groot dat de rechthoek helemaal gevuld is
+    // Zo groot dat de rechthoek helemaal gevuld is. Onderweg een haar groter (niet te zien):
+    // Safari rekent de twee lagen net iets anders uit, en dan zie je anders soms een lege rand.
+    const cover = Math.max(scaleX, scaleY) * (k === 0 || k === 30 ? 1 : 1.006);
 
     ghostSteps.push({ transform: `translate(${left - big.left}px, ${top - big.top}px) scale(${scaleX}, ${scaleY})` });
     imageSteps.push({ transform: `scale(${cover / scaleX}, ${cover / scaleY})` });
@@ -143,11 +145,16 @@ function flyHero(from, to, cardImage, video, home) {
 
   const timing = { duration: FLIGHT, easing: EASE, fill: 'forwards' };
   const flight = ghost.animate(ghostSteps, timing);
-  image.animate(imageSteps, timing);
+  const parts = [flight, image.animate(imageSteps, timing)];
   // Een kaart opzij is vervaagd: het beeld wordt tijdens de vlucht vol, niet in één klap
   if (opening) {
-    ghost.animate({ opacity: [getComputedStyle(cardImage.closest('.card')).opacity, 1] }, timing);
+    parts.push(ghost.animate({ opacity: [getComputedStyle(cardImage.closest('.card')).opacity, 1] }, timing));
   }
+  // Allemaal op exact hetzelfde moment starten: lopen de twee lagen uit de pas, dan zie je een lege rand
+  const startTime = document.timeline.currentTime;
+  parts.forEach((part) => {
+    part.startTime = startTime;
+  });
 
   // Geland (of onderbroken door een nieuwe klik): de video naar zijn plek, de lagen weg
   landHero = () => {

@@ -13,8 +13,7 @@
 //     springt alleen bij als je browser dat nog niet kan);
 //   - de bolletjes tonen welke kaart in het midden staat;
 //   - de bolletjes en de pijltjestoetsen schuiven naar een andere kaart;
-//   - met de muis kun je de carrousel slepen;
-//   - bij het laden schuiven de kaarten even op, zodat je ziet dat je kunt vegen.
+//   - met de muis kun je de carrousel slepen.
 
 const grid = document.querySelector('.work-grid');
 // Alles wat in de rij staat, "Coming soon" inbegrepen
@@ -232,45 +231,14 @@ grid.addEventListener('click', (event) => {
 grid.addEventListener('dragstart', (event) => event.preventDefault());
 
 
-// ---------- Een duwtje bij het laden ----------
-// De kaarten schuiven even naar links en veren terug: zo zie je dat er meer is.
-// Dat gebeurt als laatste, zodra de kaarten stuk per stuk binnen zijn (piece-in in style.css).
-// Ben je zelf al begonnen met scrollen of klikken, dan is het duwtje niet meer nodig.
-// Alleen de kaarten die je ziet, de rest staat toch buiten beeld.
-
-function revealAnimations() {
-  return document.getAnimations().filter((animation) => animation.animationName === 'piece-in');
-}
-
-if (!reduceMotion) {
-  let userStarted = false;
-  ['pointerdown', 'wheel', 'touchstart', 'keydown'].forEach((type) => {
-    window.addEventListener(type, () => { userStarted = true; }, { once: true, passive: true });
-  });
-
-  const cardsReveal = revealAnimations().filter((animation) => !animation.effect.target.matches('.work-nav'));
-
-  Promise.all(cardsReveal.map((animation) => animation.finished))
-    .then(() => {
-      if (userStarted) return;
-      allCards.slice(Math.max(0, activeIndex - 2), activeIndex + 3).forEach((card) => {
-        card.animate(
-          [
-            { translate: '0 0' },
-            { translate: '-80px 0', offset: 0.4 },
-            { translate: '0 0' },
-          ],
-          { duration: 1400, easing: 'cubic-bezier(0.65, 0, 0.35, 1)' }
-        );
-      });
-    })
-    .catch(() => {});
-}
+// ---------- Klikken tijdens het binnenkomen ----------
 
 // Klik je op een project terwijl de kaarten nog binnenkomen? Dan staat alles meteen op zijn plek.
 // Zo vliegt het beeld vanaf de juiste plek en zie je het tijdens de vlucht niet dubbel.
 grid.addEventListener('click', () => {
-  revealAnimations().forEach((animation) => animation.finish());
+  document.getAnimations()
+    .filter((animation) => animation.animationName === 'piece-in')
+    .forEach((animation) => animation.finish());
 }, true);
 
 
