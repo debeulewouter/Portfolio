@@ -22,6 +22,8 @@ const viewPage = view.querySelector('.project__page');
 const viewHero = view.querySelector('.project__hero');
 const viewContent = view.querySelector('.project__content');
 const viewIntro = view.querySelector('.project__intro');
+// Wat achter een open project ligt: het menu en de carrousel
+const behind = [...document.querySelectorAll('.nav, main')];
 // Op een gsm en een staande tablet staan beeld en tekst onder elkaar.
 // Liggend (laag scherm) staan ze naast elkaar, zoals op de computer.
 const phone = window.matchMedia('(max-width: 768px) and (not ((max-height: 560px) and (orientation: landscape))), (max-width: 1200px) and (orientation: portrait)');
@@ -39,6 +41,14 @@ let landHero = null;      // zet een vliegend beeld op zijn plek (zie flyHero)
 // 1 wordt "01"
 function pad(number) {
   return String(number).padStart(2, '0');
+}
+
+// Zet stukken van de pagina uit (of weer aan): je kunt er dan niet op klikken en komt er met de
+// Tab toets niet op. Voor alles wat achter een andere laag ligt of even onzichtbaar is.
+function setInert(elements, inert) {
+  elements.forEach((element) => {
+    element.inert = inert;
+  });
 }
 
 
@@ -274,6 +284,10 @@ function openProject(i) {
   });
   view.classList.add('is-open');
   document.body.classList.add('no-scroll');
+  setInert(behind, true);
+  // Een stap in de geschiedenis van de browser: zo sluit de terugknop het project (zie "Klikken en toetsen").
+  // Zonder adres erbij: de link in de adresbalk blijft dezelfde en Umami telt geen extra bezoek.
+  history.pushState({ project: true }, '');
   viewClose.focus({ preventScroll: true });
 
   if (lessMotion) {
@@ -285,16 +299,24 @@ function openProject(i) {
   view.classList.add('is-entering');
 }
 
-function closeProject() {
+// wentBack: je ging terug met de terugknop van de browser, of veegde terug op je gsm.
+// Dan is het project meteen weg, zonder animatie: bij het vegen toont de browser zelf al de vorige
+// pagina, en een tweede animatie erachteraan ziet eruit als een hapering.
+function closeProject(wentBack = false) {
   if (landHero) landHero();
-  // Krimpt de grote video nog terug? Dan staat hij meteen weer in het project.
+  // Staat de video nog groot, of krimpt hij nog terug? Dan staat hij meteen weer in het project.
+  if (isZoomed()) zoomOut();
   if (zoomAnimation) zoomAnimation.onfinish();
 
   const heroRect = viewHero.getBoundingClientRect();
   const video = viewHero.querySelector('video');
 
+  view.classList.toggle('is-instant', wentBack);
   view.classList.remove('is-open');
   document.body.classList.remove('no-scroll');
+  setInert(behind, false);
+  // Gesloten met het kruisje of Esc: de stap in de geschiedenis van het openen gaat mee terug
+  if (!wentBack && history.state?.project) history.back();
 
   // Laat de carrousel weten welk project open stond, dan zet hij dat in het midden
   document.dispatchEvent(new CustomEvent('project:close', { detail: { index: currentProject } }));
@@ -304,7 +326,7 @@ function closeProject() {
 
   // Staat het grote beeld nog (deels) in beeld? Dan krimpt het terug naar zijn kaart.
   // Ben je ver naar beneden gescrold, dan verdwijnt de pagina gewoon.
-  if (!lessMotion && heroRect.bottom > 0) {
+  if (!lessMotion && !wentBack && heroRect.bottom > 0) {
     flyHero(heroRect, restingRect(projectCards[currentProject], card), card, video, card);
   } else if (video) {
     card.append(video);
@@ -413,6 +435,8 @@ function zoomIn() {
   checkSound();
   video.addEventListener('timeupdate', checkSound, { once: true });
   view.classList.add('is-zoomed');
+  // De pagina en het kruisje zijn nu vervaagd: dan kom je er met de Tab toets ook niet meer op
+  setInert([viewPage, viewClose], true);
   zoomLayer.focus({ preventScroll: true });
 
   if (lessMotion) return;
@@ -428,6 +452,7 @@ function zoomOut() {
   zoomAnimation?.finish();
   setSound(false);
   view.classList.remove('is-zoomed');
+  setInert([viewPage, viewClose], false);
 
   const putBack = () => {
     zoomAnimation = null;
@@ -460,7 +485,13 @@ projectCards.forEach((card, i) => {
   });
 });
 
-viewClose.addEventListener('click', closeProject);
+viewClose.addEventListener('click', () => closeProject());
+
+// De terugknop van de browser, of terugvegen op je gsm: het project sluit en je blijft op de site.
+// Zonder dit ga je terug naar de pagina waar je vandaan kwam, en ben je de site kwijt.
+window.addEventListener('popstate', () => {
+  if (view.classList.contains('is-open')) closeProject(true);
+});
 
 viewHero.addEventListener('click', zoomIn);
 // Met het toetsenbord: Enter of spatie op de video

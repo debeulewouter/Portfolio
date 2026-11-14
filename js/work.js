@@ -137,7 +137,7 @@ function update() {
 
   // Het bolletje van de kaart in het midden gaat aan. Alleen als het verandert.
   if (activeIndex !== activeDot) {
-    dots.forEach((element, i) => element.classList.toggle('is-active', i === activeIndex));
+    dots.forEach((dot, i) => dot.setAttribute('aria-current', i === activeIndex));
     activeDot = activeIndex;
   }
 }
@@ -187,6 +187,13 @@ grid.addEventListener('pointerdown', (event) => {
 window.addEventListener('pointermove', (event) => {
   if (dragStartX === null) return;
 
+  // Knop al los zonder dat de browser het meldde (bv. na Ctrl-klik: dan opent het snelmenu)?
+  // Dan stopt het slepen hier, anders schuift de carrousel mee met je muis zonder dat je iets indrukt.
+  if (!(event.buttons & 1)) {
+    endDrag();
+    return;
+  }
+
   const distance = event.clientX - dragStartX;
 
   // Pas vanaf 5 pixels is het slepen, zo blijft een gewone klik een klik
@@ -197,7 +204,7 @@ window.addEventListener('pointermove', (event) => {
   if (dragged) grid.scrollLeft = dragStartScroll - distance;
 });
 
-window.addEventListener('pointerup', () => {
+function endDrag() {
   if (dragStartX === null) return;
 
   const distance = grid.scrollLeft - dragStartScroll;
@@ -218,7 +225,11 @@ window.addEventListener('pointerup', () => {
   if (target === dragStartIndex && distance > threshold) target += 1;
   if (target === dragStartIndex && distance < -threshold) target -= 1;
   scrollToCard(target);
-});
+}
+
+// Loslaten, of de browser breekt het slepen zelf af
+window.addEventListener('pointerup', endDrag);
+window.addEventListener('pointercancel', endDrag);
 
 // Na het slepen geen klik, anders opent het project
 grid.addEventListener('click', (event) => {

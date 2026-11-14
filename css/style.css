@@ -345,7 +345,8 @@ button {
   transition: width 0.3s ease, opacity 0.3s ease;
 }
 
-.work-dots__dot.is-active {
+/* aria-current zet js/work.js: zo hoort ook een schermlezer welk bolletje actief is, net als in de nav */
+.work-dots__dot[aria-current="true"] {
   width: calc(40 * var(--u));
   opacity: 1;
 }
@@ -388,6 +389,12 @@ button {
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+/* Terug met de terugknop van de browser: het project is meteen weg, zonder vervagen (zie js/project.js).
+   Staat boven .is-open, zodat een project daarna weer gewoon invaagt. */
+.project.is-instant {
+  transition: none;
 }
 
 /* Meteen zichtbaar bij openen, zodat het kruisje direct focus kan krijgen */
@@ -471,11 +478,14 @@ button {
   height: var(--sound-size, 56px);
   background: rgb(0 0 0 / 60%);
   opacity: 0;
+  visibility: hidden;   /* zie je hem niet, dan kom je er met de Tab toets ook niet op */
   pointer-events: none;
+  transition: opacity 0.4s ease, visibility 0.4s;
 }
 
 .project.is-zoomed.has-sound .project__sound {
   opacity: 1;
+  visibility: visible;
   pointer-events: auto;
 }
 
@@ -671,7 +681,7 @@ button {
   .project,
   .project__page,
   .project__close,
-  .project__sound {
+  .project .project__sound {
     transition: none;
   }
 }
