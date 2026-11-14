@@ -616,21 +616,23 @@ button {
   margin-top: clamp(calc(20 * var(--u)), 3.5svh, calc(40 * var(--u)));
 }
 
-/* De info: kolommen naast elkaar, een klein grijs label met de waarde eronder. Geen lijnen.
-   Past die rij niet in de breedte, dan zet js/project.js er .is-stacked op (zie hieronder). */
+/* De info: een lijstje onder elkaar, links een klein grijs label en rechts de waarde, op dezelfde lijn.
+   Geen lijnen. Bij elk project en op elk scherm dezelfde vorm: zo past het altijd, hoe lang een waarde ook is. */
 .case__info {
   display: flex;
   order: 1;
-  gap: clamp(calc(12 * var(--u)), 2svh, calc(20 * var(--u))) clamp(calc(24 * var(--u)), 3vw, calc(56 * var(--u)));
+  flex-direction: column;
+  gap: clamp(calc(12 * var(--u)), 2svh, calc(20 * var(--u)));
 }
 
 .case__info > div {
   display: flex;
-  flex-direction: column;
-  gap: calc(4 * var(--u));
+  align-items: baseline;
+  gap: calc(16 * var(--u));
 }
 
 .case__info dt {
+  flex: 0 0 3.5em;   /* alle labels even breed: zo beginnen de waarden mooi onder elkaar */
   font-size: clamp(calc(14 * var(--u)), 1.5svh, calc(15 * var(--u)));
   color: var(--grey);
 }
@@ -638,26 +640,6 @@ button {
 .case__info dd {
   font-size: clamp(calc(16 * var(--u)), 1.7svh, calc(18 * var(--u)));
   font-weight: 500;
-  white-space: nowrap;   /* een waarde breekt nooit af in een kolom */
-}
-
-/* Te smal voor één rij: dan onder elkaar, label links en waarde rechts op dezelfde lijn */
-.case__info.is-stacked {
-  flex-direction: column;
-}
-
-.case__info.is-stacked > div {
-  flex-direction: row;
-  align-items: baseline;
-  gap: calc(16 * var(--u));
-}
-
-.case__info.is-stacked dt {
-  flex: 0 0 3.5em;
-}
-
-.case__info.is-stacked dd {
-  white-space: normal;
 }
 
 /* De eerste zin groot, de rest rustiger in donkergrijs. Nooit kleiner dan 16px. */
@@ -1112,13 +1094,9 @@ html:has(.nav a:nth-child(3)[aria-current="page"])::view-transition-image-pair(n
     margin-top: 12px;
   }
 
-  /* Info: dezelfde kolommen als op de computer, iets compacter */
+  /* Info: hetzelfde lijstje als op de computer, iets compacter */
   .case__info {
-    gap: 12px 24px;
-  }
-
-  .case__info > div {
-    gap: 2px;
+    gap: 12px;
   }
 
   .case__info dt {
@@ -1298,11 +1276,7 @@ html:has(.nav a:nth-child(3)[aria-current="page"])::view-transition-image-pair(n
   }
 
   .case__info {
-    gap: 4px 20px;
-  }
-
-  .case__info > div {
-    gap: 2px;
+    gap: 4px;
   }
 
   .case__info dt {
@@ -1384,9 +1358,9 @@ html:has(.nav a:nth-child(3)[aria-current="page"])::view-transition-image-pair(n
    ========================================================================== */
 
 /* Heel weinig hoogte: het jaar staat al op de kaart in de carrousel, dus dat laten we op de
-   projectpagina weg als de info onder elkaar staat. Zo blijft het beeld groter. */
+   projectpagina weg. Zo blijft het beeld groter. */
 @media (max-width: 768px) and (max-height: 600px) and (orientation: portrait), (max-height: 400px) and (orientation: landscape) {
-  .case__info.is-stacked > .case__year {
+  .case__info > .case__year {
     display: none;
   }
 }

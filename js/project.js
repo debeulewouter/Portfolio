@@ -202,13 +202,6 @@ function fitText() {
   viewPage.style.overflowY = 'hidden';
   viewIntro.style.setProperty('--hero-scale', 1);
 
-  // Info (Role, Year, Tools): eerst als één rij proberen. Te breed? Dan onder elkaar.
-  const info = viewPage.querySelector('.case__info');
-  if (info) {
-    info.classList.remove('is-stacked');
-    if (info.scrollWidth > info.clientWidth + 1) info.classList.add('is-stacked');
-  }
-
   // Lukt "niet hoger dan het beeld" niet (een heel laag scherm), dan is niet scrollen genoeg.
   // Lukt ook dat niet (de allerkleinste schermen), dan scrolt de pagina een klein beetje:
   // liever dat dan te kleine tekst. Op de gsm blijft het beeld dan heel (geen smalle strook);
