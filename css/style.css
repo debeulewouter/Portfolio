@@ -26,6 +26,11 @@
   --margin: calc(120 * var(--u));      /* marge links en rechts */
   --nav-top: calc(64 * var(--u));      /* afstand van de nav tot de bovenkant */
   --content-top: min(calc(80 * var(--u)), 8svh);  /* afstand tussen nav en content, kleiner op een laag scherm */
+
+  /* Letterafstand. Inter is getekend voor kleine tekst: in een grote kop staan de letters daardoor te los.
+     Hoe groter de letter, hoe dichter ze bij elkaar horen. Kleine tekst blijft zoals hij is. */
+  --tracking-display: -0.03em;   /* de grote koppen */
+  --tracking-title: -0.02em;     /* titels en grotere zinnen, vanaf ongeveer 20px */
 }
 
 *,
@@ -69,6 +74,12 @@ dd {
 a {
   color: inherit;
   text-decoration: none;
+}
+
+/* Tekst die je selecteert: zwart met witte letters, in plaats van het blauw van de browser */
+::selection {
+  background: var(--black);
+  color: var(--white);
 }
 
 /* Geen grijs of blauw vlak meer als je op een gsm op een link of knop tikt */
@@ -158,6 +169,7 @@ button {
   font-size: min(calc(120 * var(--u)), 15svh, 13vw);
   font-weight: 600;
   line-height: 1;
+  letter-spacing: -0.02em;   /* hoofdletters hebben iets meer lucht nodig dan de andere grote koppen */
   opacity: 0;   /* onzichtbaar tot het lettertype er is, anders verspringen de letters */
 }
 
@@ -284,6 +296,7 @@ button {
   align-self: baseline;
   font-size: calc(24 * var(--u));
   font-weight: 600;
+  letter-spacing: var(--tracking-title);
 }
 
 /* Het jaar rechts, op dezelfde lijn als de titel */
@@ -605,6 +618,7 @@ button {
   font-size: clamp(calc(40 * var(--u)), min(5vw, 9svh), calc(96 * var(--u)));
   font-weight: 600;
   line-height: 1;
+  letter-spacing: var(--tracking-display);
 }
 
 .project__case {
@@ -656,6 +670,7 @@ button {
   font-size: clamp(calc(20 * var(--u)), min(1.7vw, 3svh), calc(32 * var(--u)));
   font-weight: 500;
   line-height: 1.3;
+  letter-spacing: var(--tracking-title);
   color: var(--black);
 }
 
@@ -716,11 +731,15 @@ body:has(.page--me) {
   font-size: calc(64 * var(--u));
   font-weight: 600;
   line-height: 1.1;
+  letter-spacing: var(--tracking-display);
 }
 
+/* Donkergrijs zoals het verhaal op de projectpagina: de kop is zwart, de lopende tekst rustiger */
 .me__intro {
   font-size: calc(24 * var(--u));
   line-height: 1.5;
+  letter-spacing: var(--tracking-title);
+  color: var(--text);
 }
 
 
@@ -758,11 +777,13 @@ body:has(.page--me) {
   font-size: min(calc(120 * var(--u)), 15svh);   /* op een laag scherm iets kleiner, zodat alles past */
   font-weight: 600;
   line-height: 1;
+  letter-spacing: var(--tracking-display);
 }
 
 .contact__mail {
   font-size: min(calc(48 * var(--u)), 6svh);
   font-weight: 600;
+  letter-spacing: var(--tracking-title);
   text-decoration: underline;
   /* De lijn net onder de staartjes van j en g, en zonder onderbrekingen.
      Anders blijft er tussen @ en g een los stukje lijn over dat op een punt lijkt. */
