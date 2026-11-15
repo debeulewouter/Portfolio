@@ -17,7 +17,15 @@
 
   <!-- Het lettertype staat in je eigen map: geen wachten op een andere server -->
   <link rel="preload" href="fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="css/style.css?v=2026-11-14c">
+  <link rel="stylesheet" href="css/style.css?v=2026-11-15g">
+
+  <!-- Van de intro naar Work: geen pagina-overgang zoals tussen de andere pagina's (die schuift Work
+       in één beweging in beeld). De intro eindigt op een leeg scherm, en Work bouwt zich daarna zelf rustig op. -->
+  <style>
+    @view-transition {
+      navigation: none;
+    }
+  </style>
 
   <!-- Je eigen toestel niet meetellen: open één keer debeulewouter.com/?niet-tellen
        (en /?wel-tellen om het terug te draaien). Dit staat vóór Umami, zodat dat bezoek ook niet telt. -->
@@ -34,9 +42,14 @@
 </head>
 <body>
 
-  <h1 class="intro">PORTFOLIO</h1>
+  <!-- De intro: het woord PORTFOLIO. js/intro.js knipt het in letters, zodat ze één voor één kunnen bewegen.
+       De span is het venster waar de letters doorheen schuiven (zie .intro__word in style.css).
+       aria-label: een schermlezer leest het woord, niet de losse letters. -->
+  <h1 class="intro" aria-label="Portfolio">
+    <span class="intro__word" aria-hidden="true">PORTFOLIO</span>
+  </h1>
 
-  <script src="js/intro.js?v=2026-11-06"></script>
+  <script src="js/intro.js?v=2026-11-15e"></script>
 
 </body>
 </html>

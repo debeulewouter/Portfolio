@@ -160,8 +160,9 @@ button {
   }
 }
 
-/* Home: alleen het woord PORTFOLIO in het midden. Het staat even stil en vervaagt dan;
-   js/intro.js gaat daarna door naar Work. Past altijd op één regel, ook op een smal scherm. */
+/* Home: alleen het woord PORTFOLIO in het midden. De letters komen één voor één van onder een rand
+   omhoog, staan even stil en vertrekken dan één voor één naar boven. js/intro.js knipt het woord
+   daarvoor in letters en gaat daarna door naar Work. Past altijd op één regel, ook op een smal scherm. */
 .intro {
   flex: 1;
   display: grid;
@@ -175,11 +176,87 @@ button {
 
 .intro.is-playing {
   opacity: 1;
-  animation: intro-out 2s ease 1s forwards;
+}
+
+/* Het woord is een venster: wat erbuiten steekt, zie je niet. De letters staan eerst onder de rand,
+   schuiven het venster in, en verlaten het later langs boven.
+   line-height 0.8 maakt het venster net zo hoog als de hoofdletters zelf (met een haar speling voor de
+   ronde letters, die altijd iets uitsteken): zo komen de letters precies uit hun eigen voetlijn. */
+.intro__word {
+  overflow: hidden;
+  line-height: 0.8;
+  white-space: nowrap;
+}
+
+.intro__letter {
+  display: inline-block;   /* alleen zo kan een losse letter verschuiven */
+}
+
+/* Het tempo is dat van een filmtitel: niets heeft haast.
+   --i is de plaats van de letter in het woord: elke letter start 55 milliseconden na de vorige.
+   Binnenkomen: eerst 0,4 seconde stilte op het lege scherm, dan komen de letters. Ze remmen lang uit,
+   zo landt elke letter zacht. Vertrekken start zacht en eindigt zacht: een letter die versnelt tot hij
+   weg is, voelt alsof hij wordt afgekapt. */
+@media (prefers-reduced-motion: no-preference) {
+  .intro.is-playing .intro__letter {
+    animation: letter-in 1.2s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+    animation-delay: calc(0.4s + var(--i) * 55ms);
+  }
+
+  /* .is-leaving zet js/intro.js erbij als het woord lang genoeg heeft gestaan */
+  .intro.is-leaving .intro__letter {
+    animation: letter-out 1.1s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+    animation-delay: calc(var(--i) * 55ms);
+  }
+}
+
+@keyframes letter-in {
+  from {
+    translate: 0 105%;
+  }
+}
+
+@keyframes letter-out {
+  to {
+    translate: 0 -105%;
+  }
+}
+
+/* Wie "minder beweging" aanzet: het woord staat er meteen en vervaagt bij het vertrek */
+@media (prefers-reduced-motion: reduce) {
+  .intro.is-leaving {
+    animation: intro-out 0.6s ease forwards;
+  }
 }
 
 @keyframes intro-out {
   to {
+    opacity: 0;
+  }
+}
+
+/* Na de intro (work.html zet dan .from-intro op de pagina) bouwt Work zich trager op dan na een gewone klik.
+   De intro is traag en rustig: valt de pagina er in het gewone tempo achteraan, dan voelt dat als een sprong.
+   Eerst vaagt het menu in op het lege scherm. Terwijl dat nog bezig is, beginnen de kaarten, later en trager
+   dan anders: de drie --piece getallen hieronder nemen het over van de gewone waarden in sectie 8 (piece-in).
+   Ze staan op de Work pagina zelf en niet op html: zo opent een project daarna in het gewone tempo. */
+@media (prefers-reduced-motion: no-preference) {
+  /* Het menu: begint 0,3 seconde na het laden en doet er 2,6 seconden over, met een gelijkmatige
+     curve die traag begint en traag eindigt. Een curve die vooraan hard gaat (zoals die van de kaarten)
+     maakt het menu in een halve seconde al bijna zichtbaar: dat voelt snel. */
+  html.from-intro .nav {
+    animation: nav-in 2.6s cubic-bezier(0.37, 0, 0.63, 1) 0.3s backwards;
+  }
+
+  html.from-intro .page--work {
+    --piece-wait: 1.3s;    /* zo lang na het laden start het eerste stuk: het menu is dan ongeveer half zichtbaar */
+    --piece-step: 0.45s;   /* tijd tussen twee stukken */
+    --piece-time: 2.2s;    /* zo lang doet elk stuk erover */
+  }
+}
+
+@keyframes nav-in {
+  from {
     opacity: 0;
   }
 }
@@ -428,68 +505,76 @@ button {
   padding-bottom: var(--nav-top);
 }
 
-/* Teller op de plek van de nav, in dezelfde letter */
-.project__counter {
-  padding: var(--nav-top) var(--margin) 0;
-  font-size: calc(24 * var(--u));
-  font-weight: 600;
+/* De bovenste rij van een project: een witte strook met rechts het kruisje, op de hoogte van het menu.
+   Scrolt de pagina (op een gsm), dan blijft de strook bovenaan staan (sticky) en schuift het beeld
+   eronderdoor: het kruisje staat dus altijd op wit. */
+.project__bar {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  justify-content: flex-end;
+  padding: calc(var(--nav-top) - calc(10 * var(--u))) var(--margin) calc(22 * var(--u));
+  background: var(--white);
 }
 
-/* Kruisje: een zwarte cirkel die blijft staan terwijl je scrolt.
-   Zo zie je hem op wit, op tekst en op elke foto.
-   De geluidsknop (bij een grote video) heeft dezelfde vorm en maat. */
+/* Kruisje en geluidsknop: dezelfde ronde knop met een fijn getekend icoon (lijnen van 1,5 px,
+   zie de svg's in work.html). Klein gehouden, met lucht rond het icoon: ze horen bij de pagina,
+   maar mogen niet opvallen naast je werk. */
 .project__close,
 .project__sound {
-  position: fixed;
-  top: calc(var(--nav-top) - calc(14 * var(--u)));
-  right: var(--margin);
-  z-index: 1;
   display: grid;
   place-items: center;
-  width: calc(56 * var(--u));
-  height: calc(56 * var(--u));
+  width: calc(48 * var(--u));
+  height: calc(48 * var(--u));
+  padding: 0;
   border: 0;
   border-radius: 50%;
   background: var(--black);
   color: var(--white);
   cursor: pointer;
-  outline: none;   /* geen rand of cirkel eromheen als hij focus krijgt */
-  transition: opacity 0.4s ease;
-}
-
-/* Draaien als je muis erover gaat. Alleen op toestellen met een muis:
-   op een gsm staat het kruisje gewoon stil. */
-@media (hover: hover) {
-  .project__close {
-    transition: transform 0.2s ease, opacity 0.4s ease;
-  }
-
-  .project__close:hover {
-    transform: rotate(90deg);
-  }
+  outline: none;   /* geen rand eromheen als hij focus krijgt */
 }
 
 .project__close svg,
 .project__sound svg {
-  width: calc(24 * var(--u));
-  height: calc(24 * var(--u));
+  width: calc(20 * var(--u));
+  height: calc(20 * var(--u));
 }
 
-/* Geluidsknop: alleen zichtbaar als de video groot staat én geluid heeft (zie js/project.js).
-   Boven de laag met de grote video, anders kun je er niet op klikken.
-   Hij staat in de hoek rechtsonder van de video: js/project.js zet in --zoom-right en --zoom-bottom
-   waar die hoek ligt, en in --sound-size hoe groot hij is (hij groeit mee met de video).
-   Halfdoorzichtig, zodat je hem op licht en donker beeld ziet.
-   ".project" ervoor: zo wint deze plek van de plek van het kruisje op mobile en op lage schermen. */
-.project .project__sound {
-  --sound-gap: calc(var(--sound-size, 56px) * 0.35);
-  top: auto;
+/* Het kruisje draait een kwartslag als je muis erover gaat, en veert licht in als je klikt.
+   Draaien alleen op toestellen met een muis: op een gsm blijft :hover hangen na een tik. */
+@media (prefers-reduced-motion: no-preference) {
+  .project__close {
+    transition: rotate 0.5s cubic-bezier(0.22, 1, 0.36, 1), scale 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .project__close:active {
+    scale: 0.92;
+    transition-duration: 0.5s, 0.12s;
+  }
+}
+
+@media (hover: hover) {
+  .project__close:hover {
+    rotate: 90deg;
+  }
+}
+
+/* Geluidsknop: in de hoek rechtsonder van de grote video, op donker matglas. Het beeld erachter schemert
+   wazig door, zo zie je de knop op licht én donker beeld en ligt hij er niet als een vlak bolletje bovenop.
+   Alleen zichtbaar als de video groot staat én geluid heeft (zie js/project.js), en boven de laag met de
+   grote video, anders kun je er niet op klikken. js/project.js zet in --zoom-right en --zoom-bottom
+   waar die hoek ligt; --sound-gap is de afstand tot de rand van de video. */
+.project__sound {
+  --sound-gap: calc(16 * var(--u));
+  position: fixed;
   right: calc(var(--zoom-right, 0px) + var(--sound-gap));
   bottom: calc(var(--zoom-bottom, 0px) + var(--sound-gap));
   z-index: 3;
-  width: var(--sound-size, 56px);
-  height: var(--sound-size, 56px);
-  background: rgb(0 0 0 / 60%);
+  background: rgb(10 10 10 / 45%);
+  -webkit-backdrop-filter: blur(12px);   /* oudere Safari */
+  backdrop-filter: blur(12px);
   opacity: 0;
   visibility: hidden;   /* zie je hem niet, dan kom je er met de Tab toets ook niet op */
   pointer-events: none;
@@ -502,12 +587,7 @@ button {
   pointer-events: auto;
 }
 
-.project .project__sound svg {
-  width: 43%;
-  height: 43%;
-}
-
-/* Eén icoon tegelijk: luidspreker met golven (geluid aan) of met een kruisje (geluid uit) */
+/* Eén icoon tegelijk: golfjes (geluid aan) of een kruisje naast de luidspreker (geluid uit) */
 .project__sound[aria-pressed="true"] .sound-off,
 .project__sound[aria-pressed="false"] .sound-on {
   display: none;
@@ -516,7 +596,7 @@ button {
 /* Twee kolommen: links het beeld, rechts de titel en de info.
    Het beeld heeft de vorm van de video zelf (--hero-ratio, breedte gedeeld door hoogte, gezet door
    js/project.js), zo wordt er nooit iets weggesneden. Het is zo groot dat alles op het scherm past:
-   de schermhoogte min de teller bovenaan (nav-top + 64px) en de witruimte onderaan (nav-top).
+   de schermhoogte min de rij met het kruisje bovenaan (nav-top + 64px) en de witruimte onderaan (nav-top).
    Het beeld neemt nooit meer dan --hero-share van de breedte, zodat de tekst genoeg plaats heeft.
    --hero-size is de breedte van het beeld. Blijft er hoogte over, dan staat alles in het midden. */
 .project__intro {
@@ -529,7 +609,7 @@ button {
   align-content: center;
   grid-template-columns: calc(var(--hero-size) * var(--hero-scale)) minmax(0, 1fr);
   gap: clamp(calc(48 * var(--u)), 5vw, calc(96 * var(--u)));
-  padding: calc(32 * var(--u)) var(--margin) 0;
+  padding: 0 var(--margin);   /* de ruimte erboven zit in de rij met het kruisje (.project__bar) */
 }
 
 /* Een liggende video (16:9) mag breder zijn: anders wordt hij lager dan de tekst ernaast */
@@ -545,7 +625,7 @@ button {
 }
 
 .project__hero {
-  align-self: center;   /* naast de tekst: allebei in het midden */
+  align-self: center;   /* is de tekst toch hoger dan het beeld (heel kleine schermen), dan staat het beeld in het midden ernaast */
   aspect-ratio: var(--hero-ratio);
   font-size: calc(14 * var(--u));
 }
@@ -575,8 +655,7 @@ button {
   transition: opacity 0.4s ease;
 }
 
-.project.is-zoomed .project__page,
-.project.is-zoomed .project__close {
+.project.is-zoomed .project__page {
   opacity: 0;
   pointer-events: none;
 }
@@ -603,18 +682,23 @@ button {
   height: 100%;
 }
 
-/* Rechterkolom: titel, verhaal en info, samen verticaal in het midden naast het beeld.
+/* Rechterkolom: titel, verhaal en info. De tekst hangt aan het beeld: de kolom is even hoog als het beeld,
+   de titel begint op de bovenrand en de info eindigt op de onderrand (zie .case__info). Zo delen tekst
+   en beeld drie lijnen: boven, onder en links.
    De tekst wordt nooit kleiner gemaakt om te passen (dan wordt hij slecht leesbaar):
    past hij niet, dan maakt js/project.js het beeld kleiner (--hero-scale). */
 .project__content {
   display: flex;
   flex-direction: column;
-  align-self: center;
+  align-self: stretch;
   min-width: 0;
 }
 
-/* De letters groeien mee met de breedte en de hoogte van je scherm */
+/* De letters groeien mee met de breedte en de hoogte van je scherm.
+   margin-top: een hoofdletter begint 0.14em onder de bovenkant van zijn regel. Zoveel schuift de titel
+   omhoog, zodat de bovenkant van de letters zelf (niet van de lege ruimte erboven) gelijk ligt met het beeld. */
 .project__title {
+  margin-top: -0.14em;
   font-size: clamp(calc(40 * var(--u)), min(5vw, 9svh), calc(96 * var(--u)));
   font-weight: 600;
   line-height: 1;
@@ -631,12 +715,17 @@ button {
 }
 
 /* De info: een lijstje onder elkaar, links een klein grijs label en rechts de waarde, op dezelfde lijn.
-   Geen lijnen. Bij elk project en op elk scherm dezelfde vorm: zo past het altijd, hoe lang een waarde ook is. */
+   Geen lijnen. Bij elk project en op elk scherm dezelfde vorm: zo past het altijd, hoe lang een waarde ook is.
+   margin-top auto duwt het lijstje naar de onderkant van de kolom, dus naar de onderrand van het beeld.
+   De kleine negatieve marge onderaan zet de letters van de laatste regel op die rand (onder de letters
+   zit altijd wat lege ruimte in een regel). */
 .case__info {
   display: flex;
   order: 1;
   flex-direction: column;
   gap: clamp(calc(12 * var(--u)), 2svh, calc(20 * var(--u)));
+  margin-top: auto;
+  margin-bottom: calc(-4 * var(--u));
 }
 
 .case__info > div {
@@ -678,7 +767,7 @@ button {
   .project,
   .project__page,
   .project__close,
-  .project .project__sound {
+  .project__sound {
     transition: none;
   }
 }
@@ -912,7 +1001,9 @@ html:has(.nav a:nth-child(3)[aria-current="page"])::view-transition-image-pair(n
    --step is de plaats in de rij: elke stap start 0.3s later dan de vorige.
    De eerste start pas na 0.6s, als de overgang tussen de pagina's helemaal klaar is. Bewegen ze tijdens
    die overgang, dan flikkert het op het moment dat de browser naar de echte pagina wisselt.
-   "backwards" houdt een stuk onzichtbaar tot zijn beurt; na afloop blijft er niets van de animatie over. */
+   "backwards" houdt een stuk onzichtbaar tot zijn beurt; na afloop blijft er niets van de animatie over.
+   De drie getallen (1.2s, 0.6s, 0.3s) zijn de gewone waarden. Na de intro gelden tragere:
+   die staan bij .from-intro in sectie 2 en komen hier binnen via --piece-time, --piece-wait en --piece-step. */
 @media (prefers-reduced-motion: no-preference) {
   .me__photo,
   .me__title,
@@ -926,12 +1017,11 @@ html:has(.nav a:nth-child(3)[aria-current="page"])::view-transition-image-pair(n
   .card__year,
   .card__meta,
   .work-nav,
-  .is-entering .project__counter,
   .is-entering .project__title,
   .is-entering .case__story,
   .is-entering .case__info {
-    animation: piece-in 1.2s cubic-bezier(0.4, 0, 0.2, 1) backwards;   /* zachte start, geen plotse sprong */
-    animation-delay: calc(0.6s + var(--step, 0) * 0.3s);
+    animation: piece-in var(--piece-time, 1.2s) cubic-bezier(0.4, 0, 0.2, 1) backwards;   /* zachte start, geen plotse sprong */
+    animation-delay: calc(var(--piece-wait, 0.6s) + var(--step, 0) * var(--piece-step, 0.3s));
   }
 
   /* Work: de kaart in het midden stuk voor stuk (beeld, titel en jaar, soort project),
@@ -970,17 +1060,13 @@ html:has(.nav a:nth-child(3)[aria-current="page"])::view-transition-image-pair(n
   }
 
   /* Projectpagina: het beeld vliegt eerst naar zijn plek (0.7s, zie js/project.js; na 0.6s is het er bijna),
-     daarna komen teller, titel, verhaal en info. js/project.js zet .is-entering bij elke keer openen. */
-  .is-entering .project__title {
+     daarna komen titel (stap 0), verhaal en info. js/project.js zet .is-entering bij elke keer openen. */
+  .is-entering .case__story {
     --step: 1;
   }
 
-  .is-entering .case__story {
-    --step: 2;
-  }
-
   .is-entering .case__info {
-    --step: 3;
+    --step: 2;
   }
 }
 
@@ -1063,45 +1149,43 @@ html:has(.nav a:nth-child(3)[aria-current="page"])::view-transition-image-pair(n
     margin-top: 24px;
   }
 
-  /* Projectpagina: staand beeld zoals de kaart, alles onder elkaar */
-  .project__counter {
-    font-size: 16px;
+  /* Projectpagina: alles onder elkaar. De knoppen zijn hier 44px: groot genoeg om met je vinger te raken. */
+  .project__bar {
+    padding: calc(var(--nav-top) - 12px) var(--margin) 8px;
   }
 
   .project__close,
   .project__sound {
-    top: calc(var(--nav-top) - 12px);
-    right: var(--margin);
     width: 44px;
     height: 44px;
   }
 
   .project__close svg,
   .project__sound svg {
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
   }
 
-  /* Op mobile onder elkaar: beeld, titel, verhaal, info.
-     Een video houdt zijn eigen vorm (een foto is 4:5 en wordt bijgesneden): volle breedte,
-     maar nooit zo hoog dat er minder dan 380px overblijft voor de tekst eronder.
-     Past de tekst dan nog niet, dan maakt js/project.js het beeld kleiner (--hero-scale), nooit de tekst. */
+  .project__sound {
+    --sound-gap: 12px;
+  }
+
+  /* Op mobile onder elkaar: beeld, titel, verhaal, info. Het beeld staat altijd over de volle breedte,
+     in de vorm van de video zelf (een foto is 4:5), en wordt nooit kleiner gemaakt.
+     Past niet alles op het scherm, dan scrolt de pagina: dat is rustiger dan een verkleind beeld
+     met een leeg vlak ernaast. */
   .project__intro {
+    align-content: start;   /* het beeld begint bij elk project op dezelfde plek, vlak onder de bovenste rij */
     grid-template-columns: minmax(0, 1fr);
-    gap: 20px;
-    padding-top: 20px;
+    gap: 24px;
   }
 
   .project__hero {
-    aspect-ratio: auto;
-    height: calc(min((100vw - 2 * var(--margin)) * 1.25, max(120px, 100svh - 380px)) * var(--hero-scale));
+    aspect-ratio: 4 / 5;
     font-size: 12px;
   }
 
   .project__hero--video {
-    justify-self: start;
-    width: calc(min(100vw - 2 * var(--margin), max(120px, 100svh - 380px) * var(--hero-ratio)) * var(--hero-scale));
-    height: auto;
     aspect-ratio: var(--hero-ratio);
   }
 
@@ -1111,8 +1195,8 @@ html:has(.nav a:nth-child(3)[aria-current="page"])::view-transition-image-pair(n
   }
 
   .project__case {
-    gap: 20px;
-    margin-top: 12px;
+    gap: 28px;
+    margin-top: 14px;
   }
 
   /* Info: hetzelfde lijstje als op de computer, iets compacter */
@@ -1129,7 +1213,7 @@ html:has(.nav a:nth-child(3)[aria-current="page"])::view-transition-image-pair(n
   }
 
   .case__story {
-    gap: 10px;
+    gap: 12px;
     font-size: 16px;
   }
 
@@ -1138,8 +1222,9 @@ html:has(.nav a:nth-child(3)[aria-current="page"])::view-transition-image-pair(n
     line-height: 1.35;
   }
 
+  /* Genoeg lucht onder de laatste regel als je tot het einde scrolt */
   .project__page {
-    padding-bottom: var(--margin);
+    padding-bottom: 40px;
   }
 
   /* Me: foto boven, tekst eronder. De tekst krijgt altijd zijn plaats,
@@ -1251,13 +1336,12 @@ html:has(.nav a:nth-child(3)[aria-current="page"])::view-transition-image-pair(n
   }
 
   /* Projectpagina: het beeld links, de tekst rechts */
-  .project__counter {
-    font-size: 16px;
+  .project__bar {
+    padding: calc(var(--nav-top) - 10px) var(--margin) 0;
   }
 
   .project__close,
   .project__sound {
-    top: calc(var(--nav-top) - 12px);
     width: 40px;
     height: 40px;
   }
@@ -1268,18 +1352,18 @@ html:has(.nav a:nth-child(3)[aria-current="page"])::view-transition-image-pair(n
     height: 18px;
   }
 
+  .project__sound {
+    --sound-gap: 12px;
+  }
+
   .project__intro {
     --hero-size: min((100svh - 2 * var(--nav-top) - 40px) * var(--hero-ratio), (100vw - 2 * var(--margin)) * 0.45);
     grid-template-columns: calc(var(--hero-size) * var(--hero-scale)) minmax(0, 1fr);
     gap: 32px;
-    padding-top: 8px;
   }
 
-  .project__hero,
-  .project__hero--video {
-    justify-self: stretch;
-    width: auto;
-    height: auto;
+  /* Naast de tekst heeft het beeld weer de vorm van de video (de gsm-regel hierboven maakt een foto 4:5) */
+  .project__hero {
     aspect-ratio: var(--hero-ratio);
   }
 
@@ -1378,9 +1462,9 @@ html:has(.nav a:nth-child(3)[aria-current="page"])::view-transition-image-pair(n
    11. Me op een lage gsm en op een staande tablet
    ========================================================================== */
 
-/* Heel weinig hoogte: het jaar staat al op de kaart in de carrousel, dus dat laten we op de
-   projectpagina weg. Zo blijft het beeld groter. */
-@media (max-width: 768px) and (max-height: 600px) and (orientation: portrait), (max-height: 400px) and (orientation: landscape) {
+/* Liggende gsm met heel weinig hoogte: het jaar staat al op de kaart in de carrousel, dus dat laten we
+   op de projectpagina weg. Zo blijft het beeld naast de tekst groter. */
+@media (max-height: 400px) and (orientation: landscape) {
   .case__info > .case__year {
     display: none;
   }
@@ -1388,11 +1472,6 @@ html:has(.nav a:nth-child(3)[aria-current="page"])::view-transition-image-pair(n
 
 /* Lage gsm (rechtop): iets kleinere tekst, zodat de foto genoeg plaats houdt */
 @media (max-width: 768px) and (max-height: 600px) and (orientation: portrait) {
-  .project__intro {
-    gap: 12px;
-    padding-top: 12px;
-  }
-
   /* Klein genoeg om een lange titel op één regel te houden, ook op de smalste gsm */
   .project__title {
     font-size: 26px;
@@ -1401,11 +1480,6 @@ html:has(.nav a:nth-child(3)[aria-current="page"])::view-transition-image-pair(n
   /* De kaart is hier smal: een lange titel moet naast het jaar passen */
   .card__title {
     font-size: 18px;
-  }
-
-  .project__case {
-    gap: 12px;
-    margin-top: 4px;
   }
 
   .me {
@@ -1427,23 +1501,20 @@ html:has(.nav a:nth-child(3)[aria-current="page"])::view-transition-image-pair(n
 
 /* Staande tablet: naast elkaar worden de kolommen te smal,
    dus foto boven en tekst eronder, samen in het midden.
-   Ook op de projectpagina: het beeld over de hele breedte bovenaan, de tekst eronder
-   (zo blijft de onderste helft van het scherm niet leeg). */
+   Ook op de projectpagina, net als op een gsm: het beeld over de volle breedte bovenaan in de vorm van
+   de video (een foto is 3:2), de tekst eronder, en de pagina scrolt als niet alles past. */
 @media (min-width: 769px) and (max-width: 1200px) and (orientation: portrait) {
   .project__intro {
+    align-content: start;
     grid-template-columns: minmax(0, 1fr);
     gap: 40px;
   }
 
   .project__hero {
-    aspect-ratio: auto;
-    height: calc(min(100vw - 2 * var(--margin), max(200px, 100svh - 2 * var(--nav-top) - 64px - 380px)) * var(--hero-scale));
+    aspect-ratio: 3 / 2;
   }
 
   .project__hero--video {
-    justify-self: start;
-    width: calc(min(100vw - 2 * var(--margin), max(200px, 100svh - 2 * var(--nav-top) - 64px - 380px) * var(--hero-ratio)) * var(--hero-scale));
-    height: auto;
     aspect-ratio: var(--hero-ratio);
   }
 

@@ -11,9 +11,7 @@
 // hier anders (projectCards in plaats van cards, enzovoort).
 
 // Alle projecten, niet de "Coming soon" kaart. In work.html staan ze van oud naar nieuw.
-// De teller telt mee: het oudste is 01, het nieuwste heeft het hoogste nummer.
 const projectCards = [...document.querySelectorAll('.card:not(.card--soon)')];
-const projectTotal = projectCards.length;
 
 const view = document.querySelector('.project');
 const viewClose = view.querySelector('.project__close');
@@ -38,11 +36,6 @@ let landHero = null;      // zet een vliegend beeld op zijn plek (zie flyHero)
 
 // ---------- Hulpfuncties ----------
 
-// 1 wordt "01"
-function pad(number) {
-  return String(number).padStart(2, '0');
-}
-
 // Zet stukken van de pagina uit (of weer aan): je kunt er dan niet op klikken en komt er met de
 // Tab toets niet op. Voor alles wat achter een andere laag ligt of even onzichtbaar is.
 function setInert(elements, inert) {
@@ -57,7 +50,6 @@ function setInert(elements, inert) {
 function fill(i) {
   const card = projectCards[i];
 
-  viewPage.querySelector('.project__counter').textContent = `${pad(i + 1)} / ${pad(projectTotal)}`;
   viewPage.querySelector('.project__title').textContent = card.querySelector('.card__title').textContent;
   const caseContent = viewPage.querySelector('.project__case');
   caseContent.innerHTML = card.querySelector('.card__case').innerHTML;
@@ -184,31 +176,32 @@ function flyHero(from, to, cardImage, video, home) {
 
 // ---------- De tekst laten passen ----------
 
-// De tekst mag nooit langer zijn dan het beeld (computer) en nooit van het scherm lopen (gsm).
-// Past hij niet, dan maken we het BEELD kleiner, nooit de tekst: kleine tekst is slecht leesbaar.
-// Zo blijft de tekst altijd even groot, hoe lang je verhaal ook is en op elk scherm.
+// Naast elkaar (computer, liggende gsm): de tekst mag nooit hoger zijn dan het beeld, en de pagina
+// scrolt niet. Past hij niet, dan maken we het BEELD kleiner, nooit de tekst: kleine tekst is slecht leesbaar.
+// Onder elkaar (gsm rechtop, staande tablet): het beeld staat over de volle breedte en de pagina mag
+// scrollen. Daar valt niets te passen.
 // Dit meet de pagina, dus het gebeurt alleen bij openen en als je het venster groter of kleiner maakt.
 function pageFits() {
   return viewPage.scrollHeight <= viewPage.clientHeight;
 }
 
 function textFits() {
-  // Op de computer staat de tekst naast het beeld: hij mag niet hoger zijn
-  return pageFits() && (phone.matches || viewContent.offsetHeight <= viewHero.offsetHeight + 1);
+  return pageFits() && viewContent.offsetHeight <= viewHero.offsetHeight + 1;
 }
 
 function fitText() {
+  viewIntro.style.setProperty('--hero-scale', 1);
+  if (phone.matches) return;
+
   // Tijdens het meten geen scrollbalk: die neemt breedte in en zou de tekst anders laten afbreken
   viewPage.style.overflowY = 'hidden';
-  viewIntro.style.setProperty('--hero-scale', 1);
 
   // Lukt "niet hoger dan het beeld" niet (een heel laag scherm), dan is niet scrollen genoeg.
   // Lukt ook dat niet (de allerkleinste schermen), dan scrolt de pagina een klein beetje:
-  // liever dat dan te kleine tekst. Op de gsm blijft het beeld dan heel (geen smalle strook);
-  // naast de tekst blijft het klein, zodat de tekst zo breed mogelijk is.
+  // liever dat dan te kleine tekst. Het beeld blijft dan klein, zodat de tekst zo breed mogelijk is.
   if (!textFits() && !shrinkHero(textFits)) {
     viewIntro.style.setProperty('--hero-scale', 1);
-    if (!pageFits() && !shrinkHero(pageFits)) viewIntro.style.setProperty('--hero-scale', phone.matches ? 1 : 0.6);
+    if (!pageFits() && !shrinkHero(pageFits)) viewIntro.style.setProperty('--hero-scale', 0.6);
   }
   viewPage.style.overflowY = '';
 }
@@ -371,11 +364,9 @@ function placeZoomVideo(video) {
     width: `${big.width}px`,
     height: `${big.height}px`,
   });
-  // De geluidsknop komt in de hoek rechtsonder van de video (zie .project__sound in de CSS)
+  // Het labeltje voor het geluid komt in de hoek rechtsonder van de video (zie .project__sound in de CSS)
   view.style.setProperty('--zoom-right', `${window.innerWidth - big.left - big.width}px`);
   view.style.setProperty('--zoom-bottom', `${window.innerHeight - big.top - big.height}px`);
-  // Hij groeit mee met de video, maar blijft groot genoeg om met je vinger aan te tikken
-  view.style.setProperty('--sound-size', `${Math.max(44, big.height * 0.065)}px`);
   return big;
 }
 
@@ -428,8 +419,8 @@ function zoomIn() {
   checkSound();
   video.addEventListener('timeupdate', checkSound, { once: true });
   view.classList.add('is-zoomed');
-  // De pagina en het kruisje zijn nu vervaagd: dan kom je er met de Tab toets ook niet meer op
-  setInert([viewPage, viewClose], true);
+  // De pagina (met het kruisje erin) is nu vervaagd: dan kom je er met de Tab toets ook niet meer op
+  setInert([viewPage], true);
   zoomLayer.focus({ preventScroll: true });
 
   if (lessMotion) return;
@@ -445,7 +436,7 @@ function zoomOut() {
   zoomAnimation?.finish();
   setSound(false);
   view.classList.remove('is-zoomed');
-  setInert([viewPage, viewClose], false);
+  setInert([viewPage], false);
 
   const putBack = () => {
     zoomAnimation = null;

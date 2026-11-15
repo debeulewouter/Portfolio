@@ -17,7 +17,7 @@
 
   <!-- Het lettertype staat in je eigen map: geen wachten op een andere server -->
   <link rel="preload" href="fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="css/style.css?v=2026-11-14c">
+  <link rel="stylesheet" href="css/style.css?v=2026-11-15g">
 
   <!-- Bezoekersstatistieken (Umami, zonder cookies). data-domains: alleen de echte site telt mee, niet je tests. -->
   <script defer src="https://cloud.umami.is/script.js" data-website-id="9738d61e-05c8-4a8d-b611-049cfe5210c3" data-domains="debeulewouter.com"></script>
@@ -26,6 +26,15 @@
        zodat de overgang meteen start als je klikt (Chrome, alleen via http zoals Live Server) -->
   <script type="speculationrules">
     { "prefetch": [{ "where": { "selector_matches": ".nav a" }, "eagerness": "moderate" }] }
+  </script>
+
+  <!-- Kom je net van de intro (js/intro.js laat dan een briefje achter)? Dan vaagt het menu rustig in
+       (zie .from-intro in style.css). Dit staat in de head: de browser moet het weten vóór hij de pagina tekent. -->
+  <script>
+    if (sessionStorage.getItem('from-intro')) {
+      sessionStorage.removeItem('from-intro');
+      document.documentElement.classList.add('from-intro');
+    }
   </script>
 </head>
 <body>
@@ -100,23 +109,27 @@
        De inhoud wordt door js/project.js uit de kaart gehaald waar je op klikte. -->
   <div class="project" role="dialog" aria-modal="true">
 
-    <button class="project__close" aria-label="Close">
-      <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.67" stroke-linecap="round">
-        <path d="M8 8l16 16M24 8L8 24" />
-      </svg>
-    </button>
-
-    <!-- Geluid aan/uit: verschijnt alleen als de video groot staat en de video geluid heeft -->
+    <!-- Geluid aan/uit: een ronde knop in de hoek van de grote video. Hij verschijnt alleen als de video
+         groot staat en geluid heeft. Eén van de twee is zichtbaar (zie aria-pressed in style.css):
+         de golfjes (geluid aan) of het kruisje naast de luidspreker (geluid uit). -->
     <button class="project__sound" aria-label="Sound" aria-pressed="false">
-      <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.67" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M5 12.5h4.5L16 7v18l-6.5-5.5H5z" />
-        <path class="sound-on" d="M20.5 12a5.5 5.5 0 0 1 0 8M24 8.5a10.5 10.5 0 0 1 0 15" />
-        <path class="sound-off" d="M21 13l6 6M27 13l-6 6" />
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 7.75h2.75L10 4.25v11.5l-4.25-3.5H3z" />
+        <path class="sound-on" d="M12.75 7.5a3.5 3.5 0 0 1 0 5M15 5.25a6.75 6.75 0 0 1 0 9.5" />
+        <path class="sound-off" d="M13.25 8l4 4M17.25 8l-4 4" />
       </svg>
     </button>
 
     <div class="project__page">
-      <p class="project__counter"></p>
+      <!-- De bovenste rij: een witte strook met het kruisje. Scrolt de pagina (op een gsm), dan blijft de strook
+           bovenaan staan en schuift het beeld eronderdoor: het kruisje staat altijd op wit. -->
+      <div class="project__bar">
+        <button class="project__close" aria-label="Close">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+            <path d="M3.5 3.5l13 13M16.5 3.5l-13 13" />
+          </svg>
+        </button>
+      </div>
 
       <div class="project__intro">
         <div class="project__hero placeholder"></div>
@@ -132,7 +145,7 @@
 
   <script src="js/nav.js?v=2026-11-06"></script>
   <script src="js/work.js?v=2026-11-14"></script>
-  <script src="js/project.js?v=2026-11-14b"></script>
+  <script src="js/project.js?v=2026-11-15b"></script>
   <script src="js/reveal.js?v=2026-11-06c"></script>
 
 </body>
