@@ -16,6 +16,7 @@ const projectCards = [...document.querySelectorAll('.card:not(.card--soon)')];
 const view = document.querySelector('.project');
 const viewClose = view.querySelector('.project__close');
 const viewSound = view.querySelector('.project__sound');
+const viewVolume = view.querySelector('.project__volume');
 const viewPage = view.querySelector('.project__page');
 const viewHero = view.querySelector('.project__hero');
 const viewContent = view.querySelector('.project__content');
@@ -364,7 +365,7 @@ function placeZoomVideo(video) {
     width: `${big.width}px`,
     height: `${big.height}px`,
   });
-  // Het labeltje voor het geluid komt in de hoek rechtsonder van de video (zie .project__sound in de CSS)
+  // Het labeltje voor het geluid komt in de hoek rechtsonder van de video (zie .project__audio in de CSS)
   view.style.setProperty('--zoom-right', `${window.innerWidth - big.left - big.width}px`);
   view.style.setProperty('--zoom-bottom', `${window.innerHeight - big.top - big.height}px`);
   return big;
@@ -382,14 +383,29 @@ function heroLook(big, hero) {
 }
 
 // Geluid aan of uit. Geluid kan alleen in de grote weergave; terug in het project is hij altijd stil.
+// Het schuifje volgt mee: staat het geluid uit, dan staat het schuifje helemaal links.
 function setSound(on) {
   const video = zoomLayer.querySelector('video');
-  if (video) video.muted = !on;
+  if (video) {
+    if (on && video.volume === 0) video.volume = 1;   // aanzetten met het volume op nul zou niets doen
+    video.muted = !on;
+  }
   viewSound.setAttribute('aria-pressed', String(on));
+  const level = on && video ? video.volume : 0;
+  viewVolume.value = level;
+  viewVolume.style.setProperty('--volume', level);   // tot waar de lijn wit is (zie .project__volume in de CSS)
 }
 
 viewSound.addEventListener('click', () => {
   setSound(viewSound.getAttribute('aria-pressed') !== 'true');
+});
+
+// Schuiven regelt hoe luid de video is. Helemaal naar links = geluid uit.
+viewVolume.addEventListener('input', () => {
+  const video = zoomLayer.querySelector('video');
+  const level = Number(viewVolume.value);
+  if (video && level > 0) video.volume = level;
+  setSound(level > 0);
 });
 
 // Heeft de video een geluidsspoor? Elke browser vertelt dat op zijn eigen manier.
@@ -411,7 +427,15 @@ function zoomIn() {
   const hero = viewHero.getBoundingClientRect();
   zoomLayer.hidden = false;
   zoomLayer.append(video);   // verhuizen pauzeert een video, dus meteen weer starten
-  keepPlaying(video);
+  // Groot = met geluid. Dat mag van de browser, omdat je zelf net op de video klikte.
+  // Weigert een browser het toch, dan speelt de video stil verder en kun je het icoon gebruiken.
+  setSound(true);
+  if (!lessMotion) {
+    video.play().catch(() => {
+      setSound(false);
+      keepPlaying(video);
+    });
+  }
   const big = placeZoomVideo(video);
   // Geluidsknop alleen bij een video die geluid heeft. Sommige browsers weten dat pas
   // als de video speelt, dus we kijken nog een keer zodra hij loopt.

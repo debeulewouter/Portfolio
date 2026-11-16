@@ -17,7 +17,7 @@
 
   <!-- Het lettertype staat in je eigen map: geen wachten op een andere server -->
   <link rel="preload" href="fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="css/style.css?v=2026-11-16b">
+  <link rel="stylesheet" href="css/style.css?v=2026-11-16c">
 
   <!-- Bezoekersstatistieken (Umami, zonder cookies). data-domains: alleen de echte site telt mee, niet je tests. -->
   <script defer src="https://cloud.umami.is/script.js" data-website-id="9738d61e-05c8-4a8d-b611-049cfe5210c3" data-domains="debeulewouter.com"></script>
@@ -109,16 +109,21 @@
        De inhoud wordt door js/project.js uit de kaart gehaald waar je op klikte. -->
   <div class="project" role="dialog" aria-modal="true">
 
-    <!-- Geluid aan/uit: een icoon in de hoek van de grote video. Hij verschijnt alleen als de video
-         groot staat en geluid heeft. Eén van de twee is zichtbaar (zie aria-pressed in style.css):
+    <!-- Geluid: in de hoek van de grote video. Verschijnt alleen als de video groot staat en geluid heeft.
+         Het schuifje regelt hoe luid; het schuift uit het icoon als je muis erop staat (alleen met een muis,
+         op een gsm gebruik je de knoppen van je toestel).
+         Het icoon zet het geluid aan of uit. Eén van de twee is zichtbaar (zie aria-pressed in style.css):
          de golfjes (geluid aan) of het kruisje naast de luidspreker (geluid uit). -->
-    <button class="project__sound" aria-label="Sound" aria-pressed="false">
-      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M3 7.75h2.75L10 4.25v11.5l-4.25-3.5H3z" />
-        <path class="sound-on" d="M12.75 7.5a3.5 3.5 0 0 1 0 5M15 5.25a6.75 6.75 0 0 1 0 9.5" />
-        <path class="sound-off" d="M13.25 8l4 4M17.25 8l-4 4" />
-      </svg>
-    </button>
+    <div class="project__audio">
+      <input class="project__volume" type="range" min="0" max="1" step="0.01" value="1" aria-label="Volume">
+      <button class="project__sound" aria-label="Sound" aria-pressed="false">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 7.75h2.75L10 4.25v11.5l-4.25-3.5H3z" />
+          <path class="sound-on" d="M12.75 7.5a3.5 3.5 0 0 1 0 5M15 5.25a6.75 6.75 0 0 1 0 9.5" />
+          <path class="sound-off" d="M13.25 8l4 4M17.25 8l-4 4" />
+        </svg>
+      </button>
+    </div>
 
     <div class="project__page">
       <!-- De bovenste rij: een witte strook met het kruisje. Scrolt de pagina (op een gsm), dan blijft de strook
@@ -145,7 +150,7 @@
 
   <script src="js/nav.js?v=2026-11-06"></script>
   <script src="js/work.js?v=2026-11-14"></script>
-  <script src="js/project.js?v=2026-11-16b"></script>
+  <script src="js/project.js?v=2026-11-16d"></script>
   <script src="js/reveal.js?v=2026-11-06c"></script>
 
 </body>

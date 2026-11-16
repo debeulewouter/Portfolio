@@ -566,12 +566,13 @@ button {
   }
 }
 
-/* Geluidsknop: in de hoek rechtsonder van de grote video, een wit icoon in dezelfde stijl als het kruisje.
-   Een zachte schaduw onder de lijnen houdt het icoon zichtbaar op een licht beeld.
+/* Geluid: in de hoek rechtsonder van de grote video, een wit icoon in dezelfde stijl als het kruisje,
+   met links ervan het schuifje voor het volume (.project__volume, verderop).
+   Een zachte schaduw onder de lijnen houdt alles zichtbaar op een licht beeld.
    Alleen zichtbaar als de video groot staat én geluid heeft (zie js/project.js), en boven de laag met de
    grote video, anders kun je er niet op klikken. js/project.js zet in --zoom-right en --zoom-bottom
    waar die hoek ligt; --sound-gap is de afstand tot de rand van de video. */
-.project__sound {
+.project__audio {
   --sound-gap: calc(16 * var(--u));
   position: fixed;
   right: calc(var(--zoom-right, 0px) + var(--sound-gap));
@@ -589,7 +590,7 @@ button {
 
 /* Binnenkomen: pas als de video groot staat (die groeit 0.6s, zie zoomIn in js/project.js),
    dan vaagt het icoon in en schuift het een klein stukje omhoog naar zijn plek. */
-.project.is-zoomed.has-sound .project__sound {
+.project.is-zoomed.has-sound .project__audio {
   opacity: 1;
   translate: 0 0;
   visibility: visible;
@@ -597,10 +598,89 @@ button {
   transition: opacity 0.4s ease 0.5s, visibility 0s 0.5s, translate 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.5s;
 }
 
+.project__sound {
+  color: inherit;
+}
+
 /* Eén icoon tegelijk: golfjes (geluid aan) of een kruisje naast de luidspreker (geluid uit) */
 .project__sound[aria-pressed="true"] .sound-off,
 .project__sound[aria-pressed="false"] .sound-on {
   display: none;
+}
+
+/* Het schuifje voor het volume: een dunne witte lijn met een bolletje, links van het icoon.
+   Zonder muis (gsm, tablet) bestaat het niet: daar regel je het volume met de knoppen van je toestel. */
+.project__volume {
+  display: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  /* --volume (0 tot 1) zet js/project.js: tot daar is de lijn helemaal wit, de rest is half doorzichtig.
+     Het schuifje is even hoog als het icoon, zo ga je met je muis van het ene naar het andere
+     zonder dat het weer dichtklapt. Dicht: onzichtbaar en een stukje naar rechts, achter het icoon. */
+  .project__volume {
+    --thumb: calc(12 * var(--u));
+    --fill: calc(var(--thumb) / 2 + var(--volume, 1) * (100% - var(--thumb)));
+    display: block;
+    position: absolute;
+    right: 100%;
+    top: calc(50% - 24 * var(--u));
+    width: calc(104 * var(--u));
+    height: calc(48 * var(--u));
+    margin: 0;
+    padding: 0;
+    appearance: none;
+    -webkit-appearance: none;
+    background: linear-gradient(to right, var(--white) var(--fill), rgb(255 255 255 / 40%) var(--fill)) center / 100% calc(2 * var(--u)) no-repeat;
+    cursor: pointer;
+    outline: none;
+    opacity: 0;
+    translate: calc(20 * var(--u)) 0;
+    clip-path: inset(0 0 0 100%);   /* de lijn groeit van rechts naar links uit het icoon */
+    pointer-events: none;
+    /* Dichtgaan: even wachten (0.25s), zodat het niet dichtklapt als je muis er net naast schiet */
+    transition: opacity 0.3s ease 0.25s, translate 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.25s, clip-path 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.25s;
+  }
+
+  /* Open: muis op het icoon of het schuifje, tijdens het slepen, of als je er met de Tab toets op staat */
+  .project__audio:hover .project__volume,
+  .project__volume:active,
+  .project__audio:has(:focus-visible) .project__volume {
+    opacity: 1;
+    translate: 0 0;
+    clip-path: inset(0);
+    pointer-events: auto;
+    transition: opacity 0.3s ease, translate 0.5s cubic-bezier(0.22, 1, 0.36, 1), clip-path 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* De lijn tekenen we zelf (background hierboven), dus de baan van de browser is leeg */
+  .project__volume::-webkit-slider-runnable-track {
+    height: 100%;
+    background: none;
+  }
+
+  .project__volume::-moz-range-track {
+    background: none;
+  }
+
+  /* Het bolletje. Bij WebKit staat het bovenaan in de baan, dus schuiven we het zelf naar het midden. */
+  .project__volume::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: var(--thumb);
+    height: var(--thumb);
+    margin-top: calc(18 * var(--u));   /* (48 - 12) / 2 */
+    border: 0;
+    border-radius: 50%;
+    background: var(--white);
+  }
+
+  .project__volume::-moz-range-thumb {
+    width: var(--thumb);
+    height: var(--thumb);
+    border: 0;
+    border-radius: 50%;
+    background: var(--white);
+  }
 }
 
 /* Twee kolommen: links het beeld, rechts de titel en de info.
@@ -777,7 +857,8 @@ button {
   .project,
   .project__page,
   .project__close,
-  .project__sound {
+  .project__audio,
+  .project .project__audio .project__volume {   /* zo lang geschreven om te winnen van de :hover regel van het schuifje */
     transition: none;
   }
 }
@@ -1180,7 +1261,7 @@ html:has(.nav a:nth-child(3)[aria-current="page"])::view-transition-image-pair(n
     margin-right: -15px;
   }
 
-  .project__sound {
+  .project__audio {
     --sound-gap: 12px;
   }
 
@@ -1370,7 +1451,7 @@ html:has(.nav a:nth-child(3)[aria-current="page"])::view-transition-image-pair(n
     margin-right: -13px;
   }
 
-  .project__sound {
+  .project__audio {
     --sound-gap: 12px;
   }
 
