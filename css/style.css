@@ -890,6 +890,17 @@ body:has(.page--me) {
   min-height: 0;
 }
 
+/* <picture> is alleen een doosje rond de foto om uit twee bestanden te kiezen (zie me.html).
+   Voor de opmaak bestaat het niet: de foto zelf blijft het stuk dat de plaats inneemt. */
+.me picture {
+  display: contents;
+}
+
+/* <source> toont zelf niets, maar zou anders wel een vakje in het rooster innemen */
+.me source {
+  display: none;
+}
+
 /* De foto is nooit hoger dan de plaats die er is.
    Is het scherm laag, dan wordt het kader iets breder dan hoog en valt er wat van de foto weg. */
 .me__photo {
@@ -1637,4 +1648,48 @@ html:has(.nav a:nth-child(3)[aria-current="page"])::view-transition-image-pair(n
   .me__text {
     flex-shrink: 0;
   }
+}
+
+
+/* ==========================================================================
+   PROEF: bewegende achtergrond (video achter glas). Bevalt het niet: dit hele blok weg,
+   net als de <video class="backdrop"> bovenaan in de vier pagina's.
+   ========================================================================== */
+
+/* De video ligt achter alles en vult het scherm. Hij is al bewerkt in het bestand zelf (videos/backdrop.mp4):
+   wazig, omgekeerd (de donkere zee is wit, het licht op het water is zwart) en lichter getrokken.
+   De browser hoeft dus niets te vervagen.
+   opacity: hoe zwart de accenten zijn. 1 = zuiver zwart, lager = grijzer. */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+/* Op Work zachter: daar spelen je eigen video's, en de kaarten opzij zijn half doorzichtig,
+   dus een sterke achtergrond schemert door die beelden heen. */
+body:has(.page--work) .backdrop {
+  opacity: 0.3;
+}
+
+/* Een geopend project is doorzichtig, zodat je ook daar de achtergrond ziet.
+   Het menu en de carrousel eronder vervagen dan zelf, anders zie je ze erdoorheen. */
+.project,
+.project__bar {
+  background: none;
+}
+
+.nav,
+main {
+  transition: opacity 0.3s ease;
+}
+
+body.no-scroll .nav,
+body.no-scroll main {
+  opacity: 0;
 }

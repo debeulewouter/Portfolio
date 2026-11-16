@@ -17,7 +17,7 @@
 
   <!-- Het lettertype staat in je eigen map: geen wachten op een andere server -->
   <link rel="preload" href="fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="css/style.css?v=2026-11-16c">
+  <link rel="stylesheet" href="css/style.css?v=2026-11-16p">
 
   <!-- Van de intro naar Work: geen pagina-overgang zoals tussen de andere pagina's (die schuift Work
        in één beweging in beeld). De intro eindigt op een leeg scherm, en Work bouwt zich daarna zelf rustig op. -->
@@ -41,6 +41,9 @@
   <noscript><meta http-equiv="refresh" content="2;url=work.html"><style>.intro { opacity: 1; }</style></noscript>
 </head>
 <body>
+
+  <!-- PROEF: bewegende achtergrond. Een kleine, wazige video achter alles (zie .backdrop in css/style.css). -->
+  <video class="backdrop" src="videos/backdrop.mp4?v=3" poster="images/backdrop.jpg?v=3" autoplay muted loop playsinline disablepictureinpicture aria-hidden="true" tabindex="-1"></video>
 
   <!-- De intro: het woord PORTFOLIO. js/intro.js knipt het in letters, zodat ze één voor één kunnen bewegen.
        De span is het venster waar de letters doorheen schuiven (zie .intro__word in style.css).

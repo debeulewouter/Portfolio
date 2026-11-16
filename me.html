@@ -17,7 +17,7 @@
 
   <!-- Het lettertype staat in je eigen map: geen wachten op een andere server -->
   <link rel="preload" href="fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="css/style.css?v=2026-11-16c">
+  <link rel="stylesheet" href="css/style.css?v=2026-11-16p">
 
   <!-- Bezoekersstatistieken (Umami, zonder cookies). data-domains: alleen de echte site telt mee, niet je tests. -->
   <script defer src="https://cloud.umami.is/script.js" data-website-id="9738d61e-05c8-4a8d-b611-049cfe5210c3" data-domains="debeulewouter.com"></script>
@@ -30,6 +30,9 @@
 </head>
 <body>
 
+  <!-- PROEF: bewegende achtergrond. Een kleine, wazige video achter alles (zie .backdrop in css/style.css). -->
+  <video class="backdrop" src="videos/backdrop.mp4?v=3" poster="images/backdrop.jpg?v=3" autoplay muted loop playsinline disablepictureinpicture aria-hidden="true" tabindex="-1"></video>
+
   <nav class="nav">
     <a href="work.html">WORK</a>
     <a href="me.html" aria-current="page">ME</a>
@@ -41,7 +44,12 @@
 
       <!-- Je foto. width en height = de echte maat, zo houdt de browser meteen plaats vrij
            en springt de tekst niet weg terwijl de foto laadt. -->
-      <img class="me__photo" src="images/me.jpg" alt="Portrait of Wouter" width="1254" height="1254" fetchpriority="high" decoding="sync">
+      <!-- Twee versies van dezelfde foto: de browser neemt de lichte (AVIF, 40 KB) als hij die kent,
+           anders de gewone JPEG (133 KB). -->
+      <picture>
+        <source srcset="images/me.avif" type="image/avif">
+        <img class="me__photo" src="images/me.jpg" alt="Portrait of Wouter" width="1254" height="1254" fetchpriority="high" decoding="sync">
+      </picture>
 
       <div class="me__text">
         <h1 class="me__title">Hi, I’m Wouter.</h1>

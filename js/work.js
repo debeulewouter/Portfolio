@@ -56,6 +56,21 @@ function measure() {
 // Een video speelt alleen als je hem ziet, en niet achter een open projectpagina.
 // Zo laden en draaien de andere video's niet voor niets.
 
+// Op een gsm: een lichtere versie van elke video (data-phone in work.html), kleiner en in HEVC,
+// een formaat dat de helft minder weegt. Kent het toestel HEVC niet, dan blijft de gewone video staan.
+// Dit gebeurt vóór er iets geladen is: een video laadt pas als hij begint te spelen (preload="none").
+const smallScreen = window.matchMedia('(max-width: 768px), (max-height: 560px) and (orientation: landscape)').matches;
+
+if (smallScreen) {
+  grid.querySelectorAll('.card__image video[data-phone]').forEach((video) => {
+    if (video.canPlayType('video/mp4; codecs="hvc1"')) video.src = video.dataset.phone;
+  });
+}
+
+// Op een gsm speelt een video pas als minstens de helft van de kaart in beeld is. De kaart ernaast steekt daar
+// maar een randje uit: die hoeft niet te laden. Op een groot scherm speelt ook de kaart die deels in beeld staat.
+const visibleShare = smallScreen ? 0.5 : 0;
+
 function playCardVideo(video) {
   video.muted = true;
   video.play().catch(() => {});   // mag niet afspelen? Dan blijft de stilstaande poster staan
@@ -63,12 +78,13 @@ function playCardVideo(video) {
 
 const videoWatcher = new IntersectionObserver((entries) => {
   entries.forEach((entry) => {
-    entry.target.isVisible = entry.isIntersecting;
+    const visible = entry.isIntersecting && entry.intersectionRatio >= visibleShare;
+    entry.target.isVisible = visible;
 
-    if (!entry.isIntersecting) entry.target.pause();
+    if (!visible) entry.target.pause();
     else if (!document.querySelector('.project.is-open')) playCardVideo(entry.target);
   });
-});
+}, { threshold: visibleShare });
 
 // Bij "minder beweging" op je toestel blijft alleen de poster staan
 if (!reduceMotion) {
