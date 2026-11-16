@@ -1045,14 +1045,21 @@ body:has(.page--me) {
   animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* De rest van de pagina: de oude schuift snel een beetje omhoog en vervaagt,
+/* De inhoud van de pagina (alles in <main>) krijgt ook een eigen naam. Zo wisselt alleen de inhoud,
+   en blijft wat erachter ligt (de achtergrondvideo) gewoon staan: die vloeit zacht over van de oude
+   pagina naar de nieuwe in plaats van mee weg te schuiven. */
+main {
+  view-transition-name: page;
+}
+
+/* De inhoud: de oude schuift snel een beetje omhoog en vervaagt,
    daarna komt de nieuwe van iets lager in beeld. */
-::view-transition-old(root) {
+::view-transition-old(page) {
   animation: page-out 0.18s ease-out both;
 }
 
 /* Wacht tot de oude pagina bijna weg is, zo lopen ze niet door elkaar */
-::view-transition-new(root) {
+::view-transition-new(page) {
   animation: page-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both;
 }
 

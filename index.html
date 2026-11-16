@@ -17,7 +17,7 @@
 
   <!-- Het lettertype staat in je eigen map: geen wachten op een andere server -->
   <link rel="preload" href="fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="css/style.css?v=2026-11-16q">
+  <link rel="stylesheet" href="css/style.css?v=2026-11-16r">
 
   <!-- Van de intro naar Work: geen pagina-overgang zoals tussen de andere pagina's (die schuift Work
        in één beweging in beeld). De intro eindigt op een leeg scherm, en Work bouwt zich daarna zelf rustig op. -->
@@ -44,6 +44,29 @@
 
   <!-- PROEF: bewegende achtergrond. Een kleine, wazige video achter alles (zie .backdrop in css/style.css). -->
   <video class="backdrop" src="videos/backdrop.mp4?v=3" poster="images/backdrop.jpg?v=3" autoplay muted loop playsinline disablepictureinpicture aria-hidden="true" tabindex="-1"></video>
+
+  <!-- De achtergrond loopt door van pagina naar pagina: bij het verlaten onthoudt de browser waar de video
+       stond, en op de volgende pagina start hij daar (plus de tijd die het wisselen duurde). -->
+  <script>
+    (() => {
+      const video = document.currentScript.previousElementSibling;
+      try {
+        const saved = JSON.parse(sessionStorage.getItem('backdrop'));
+        if (saved) {
+          const resume = () => {
+            video.currentTime = (saved.time + (Date.now() - saved.at) / 1000) % video.duration;
+          };
+          if (video.readyState) resume();
+          else video.addEventListener('loadedmetadata', resume, { once: true });
+        }
+        addEventListener('pagehide', () => {
+          sessionStorage.setItem('backdrop', JSON.stringify({ time: video.currentTime, at: Date.now() }));
+        });
+      } catch (error) {
+        // Mag de browser niets onthouden (heel strenge privacy)? Dan begint de video gewoon vooraan.
+      }
+    })();
+  </script>
 
   <!-- De intro: het woord PORTFOLIO. js/intro.js knipt het in letters, zodat ze één voor één kunnen bewegen.
        De span is het venster waar de letters doorheen schuiven (zie .intro__word in style.css).

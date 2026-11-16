@@ -20,7 +20,7 @@
   <!-- Het eerste beeld dat je ziet (de poster van het nieuwste project) haalt de browser meteen op.
        Bij een nieuw project: zet hier de nieuwe poster, met exact hetzelfde adres als in de kaart. -->
   <link rel="preload" href="images/project-02.jpg?v=2026-11-05" as="image" fetchpriority="high">
-  <link rel="stylesheet" href="css/style.css?v=2026-11-16q">
+  <link rel="stylesheet" href="css/style.css?v=2026-11-16r">
 
   <!-- Bezoekersstatistieken (Umami, zonder cookies). data-domains: alleen de echte site telt mee, niet je tests. -->
   <script defer src="https://cloud.umami.is/script.js" data-website-id="9738d61e-05c8-4a8d-b611-049cfe5210c3" data-domains="debeulewouter.com"></script>
@@ -44,6 +44,29 @@
 
   <!-- PROEF: bewegende achtergrond. Een kleine, wazige video achter alles (zie .backdrop in css/style.css). -->
   <video class="backdrop" src="videos/backdrop.mp4?v=3" poster="images/backdrop.jpg?v=3" autoplay muted loop playsinline disablepictureinpicture aria-hidden="true" tabindex="-1"></video>
+
+  <!-- De achtergrond loopt door van pagina naar pagina: bij het verlaten onthoudt de browser waar de video
+       stond, en op de volgende pagina start hij daar (plus de tijd die het wisselen duurde). -->
+  <script>
+    (() => {
+      const video = document.currentScript.previousElementSibling;
+      try {
+        const saved = JSON.parse(sessionStorage.getItem('backdrop'));
+        if (saved) {
+          const resume = () => {
+            video.currentTime = (saved.time + (Date.now() - saved.at) / 1000) % video.duration;
+          };
+          if (video.readyState) resume();
+          else video.addEventListener('loadedmetadata', resume, { once: true });
+        }
+        addEventListener('pagehide', () => {
+          sessionStorage.setItem('backdrop', JSON.stringify({ time: video.currentTime, at: Date.now() }));
+        });
+      } catch (error) {
+        // Mag de browser niets onthouden (heel strenge privacy)? Dan begint de video gewoon vooraan.
+      }
+    })();
+  </script>
 
   <nav class="nav">
     <a href="work.html" aria-current="page">WORK</a>
