@@ -1684,6 +1684,21 @@ body:has(.page--work) .backdrop {
   background: none;
 }
 
+/* Waar het project scrolt (gsm rechtop, staande tablet) is de rij met het kruisje weer een witte strook:
+   het beeld schuift eronderdoor en het kruisje staat altijd op wit, niet over je video. */
+@media (max-width: 768px), (min-width: 769px) and (max-width: 1200px) and (orientation: portrait) {
+  .project__bar {
+    background: var(--white);
+  }
+}
+
+/* Een liggende gsm scrolt niet: daar geen strook */
+@media (max-height: 560px) and (orientation: landscape) {
+  .project__bar {
+    background: none;
+  }
+}
+
 .nav,
 main {
   transition: opacity 0.3s ease;

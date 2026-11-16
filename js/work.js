@@ -67,24 +67,28 @@ if (smallScreen) {
   });
 }
 
-// Op een gsm speelt een video pas als minstens de helft van de kaart in beeld is. De kaart ernaast steekt daar
-// maar een randje uit: die hoeft niet te laden. Op een groot scherm speelt ook de kaart die deels in beeld staat.
-const visibleShare = smallScreen ? 0.5 : 0;
+// Een video begint pas te laden als er een stuk van de kaart in beeld is (15%), niet bij een smal randje.
+// Op een gsm steekt de kaart ernaast maar een randje uit: die laadt dus pas als je ernaartoe veegt.
+// Heeft een video al eens gespeeld, dan speelt hij daarna zodra er iets van te zien is: zo zie je nooit
+// een video die stilstaat terwijl hij half in beeld is. Dit geldt op elk scherm, groot en klein.
+const START_SHARE = 0.15;
 
 function playCardVideo(video) {
+  video.hasStarted = true;
   video.muted = true;
   video.play().catch(() => {});   // mag niet afspelen? Dan blijft de stilstaande poster staan
 }
 
 const videoWatcher = new IntersectionObserver((entries) => {
   entries.forEach((entry) => {
-    const visible = entry.isIntersecting && entry.intersectionRatio >= visibleShare;
-    entry.target.isVisible = visible;
+    const video = entry.target;
+    const visible = entry.isIntersecting && (video.hasStarted || entry.intersectionRatio >= START_SHARE);
+    video.isVisible = visible;
 
-    if (!visible) entry.target.pause();
-    else if (!document.querySelector('.project.is-open')) playCardVideo(entry.target);
+    if (!visible) video.pause();
+    else if (!document.querySelector('.project.is-open')) playCardVideo(video);
   });
-}, { threshold: visibleShare });
+}, { threshold: [0, START_SHARE] });
 
 // Bij "minder beweging" op je toestel blijft alleen de poster staan
 if (!reduceMotion) {
