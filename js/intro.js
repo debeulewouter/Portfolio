@@ -79,7 +79,7 @@ Promise.race([
   });
 
 // Haal Work alvast op terwijl je hier kijkt, dan staan de beelden er meteen.
-// Alles komt uit work.html zelf, dus nieuwe projecten gaan vanzelf mee. De video's niet: die zijn te groot.
+// Alles komt uit work.html zelf, dus nieuwe projecten gaan vanzelf mee. De video's haalt js/videos.js op.
 fetch('work.html')
   .then((response) => response.text())
   .then((html) => {

@@ -1666,7 +1666,11 @@ html:has(.nav a:nth-child(3)[aria-current="page"])::view-transition-image-pair(n
 /* De video ligt achter alles en vult het scherm. Hij is al bewerkt in het bestand zelf (videos/backdrop.mp4):
    wazig, omgekeerd (de donkere zee is wit, het licht op het water is zwart) en lichter getrokken.
    De browser hoeft dus niets te vervagen.
-   opacity: hoe zwart de accenten zijn. 1 = zuiver zwart, lager = grijzer. */
+   opacity: hoe zwart de accenten zijn. 1 = zuiver zwart, lager = grijzer.
+   background: het beeld dat je ziet zolang de video zelf nog geen beeld heeft, op dezelfde manier
+   uitgesneden als de video. Het script na de <video> in elke pagina zet daar het laatste beeld van de
+   vorige pagina in. Bij je allereerste pagina is er nog geen vorig beeld: daarvoor staat het eerste beeld
+   van de video hieronder in --backdrop-start. */
 .backdrop {
   position: fixed;
   inset: 0;
@@ -1674,8 +1678,16 @@ html:has(.nav a:nth-child(3)[aria-current="page"])::view-transition-image-pair(n
   width: 100%;
   height: 100%;
   object-fit: cover;
+  background: var(--backdrop-start) center / cover no-repeat;
   opacity: 0.8;
   pointer-events: none;
+}
+
+/* Het eerste beeld van de achtergrondvideo, als tekst in dit bestand (3 KB) in plaats van als apart bestand:
+   zo staat het er meteen bij de eerste tekenbeurt, zonder dat de browser er nog iets voor moet ophalen.
+   Nieuwe achtergrondvideo? Dan moet deze lange regel opnieuw gemaakt worden uit het eerste beeld. */
+:root {
+  --backdrop-start: url("data:image/jpeg;base64,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jhR24r1/w34O0awuHKwCMsey4r77TwN4YT7lkgpw8FeGlORZpQB8oWHgjRJm3OoOfaur0zwBo8NxuWNdv0r6Qj8MaHF9y1UVdTSNNj+5bqKAPAf+ELtra6S4tYxgegrrg0UMQVrfJUeletrbW6DCxqPwpfs9v/zyT/vkUAeBz6xJHJtjsm/AVpafrl2pBNm35V7T9ltv+eKf98inCGEdEUfgKAPMxdXuoYBtWH4VsW2l6pjKrs+vFdwABwOKWgDnYbDUk6yAVuQpIiYkbcamooAQCloooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooA//0Pv6iiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooA//0fv6iiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooA//0vv6iiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooA//2Q==");
 }
 
 /* Op Work zachter: daar spelen je eigen video's, en de kaarten opzij zijn half doorzichtig,

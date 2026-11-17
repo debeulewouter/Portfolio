@@ -56,19 +56,18 @@ function measure() {
 // Een video speelt alleen als je hem ziet, en niet achter een open projectpagina.
 // Zo laden en draaien de andere video's niet voor niets.
 
-// Op een gsm: een lichtere versie van elke video (data-phone in work.html), kleiner en in HEVC,
-// een formaat dat de helft minder weegt. Kent het toestel HEVC niet, dan blijft de gewone video staan.
-// Dit gebeurt vóór er iets geladen is: een video laadt pas als hij begint te spelen (preload="none").
-const smallScreen = window.matchMedia('(max-width: 768px), (max-height: 560px) and (orientation: landscape)').matches;
+// Wacht een video op zijn eerste beeld, dan haalt Safari de poster al weg en zie je een wit vlak
+// (op een trage verbinding seconden lang). Daarom staat dezelfde poster ook als achtergrond achter
+// elke video: die blijft zichtbaar tot het eerste beeld er is. De achtergrond hangt aan de video zelf,
+// dus hij reist mee naar de projectpagina.
+grid.querySelectorAll('.card__image video[poster]').forEach((video) => {
+  video.style.background = `url("${video.poster}") center / cover no-repeat`;
+});
 
-if (smallScreen) {
-  grid.querySelectorAll('.card__image video[data-phone]').forEach((video) => {
-    if (video.canPlayType('video/mp4; codecs="hvc1"')) video.src = video.dataset.phone;
-  });
-}
-
-// Een video begint pas te laden als er een stuk van de kaart in beeld is (15%), niet bij een smal randje.
-// Op een gsm steekt de kaart ernaast maar een randje uit: die laadt dus pas als je ernaartoe veegt.
+// Een video van het internet begint pas te laden als er een stuk van de kaart in beeld is (15%), niet bij
+// een smal randje. Op een gsm steekt de kaart ernaast maar een randje uit: die laadt dus pas als je
+// ernaartoe veegt. Staat de video al op het toestel (isStored, zie hieronder), dan kost spelen geen data
+// en begint hij meteen, ook bij een randje.
 // Heeft een video al eens gespeeld, dan speelt hij daarna zodra er iets van te zien is: zo zie je nooit
 // een video die stilstaat terwijl hij half in beeld is. Dit geldt op elk scherm, groot en klein.
 const START_SHARE = 0.15;
@@ -82,7 +81,7 @@ function playCardVideo(video) {
 const videoWatcher = new IntersectionObserver((entries) => {
   entries.forEach((entry) => {
     const video = entry.target;
-    const visible = entry.isIntersecting && (video.hasStarted || entry.intersectionRatio >= START_SHARE);
+    const visible = entry.isIntersecting && (video.hasStarted || video.isStored || entry.intersectionRatio >= START_SHARE);
     video.isVisible = visible;
 
     if (!visible) video.pause();
@@ -90,10 +89,19 @@ const videoWatcher = new IntersectionObserver((entries) => {
   });
 }, { threshold: [0, START_SHARE] });
 
-// Bij "minder beweging" op je toestel blijft alleen de poster staan
-if (!reduceMotion) {
-  grid.querySelectorAll('.card__image video').forEach((video) => videoWatcher.observe(video));
-}
+// Per video: welk bestand past bij dit toestel, en staat het al op het toestel? (zie js/videos.js)
+// Zo ja, dan speelt de video van de schijf en is er geen laadtijd. Zo nee, dan komt hij van het internet.
+// Dit gebeurt vóór er iets geladen is: een video laadt pas als hij begint te spelen (preload="none").
+// Bij "minder beweging" op je toestel blijft alleen de poster staan.
+grid.querySelectorAll('.card__image video').forEach((video) => {
+  const url = videoStore.pick(video);
+
+  videoStore.local(url).then((local) => {
+    video.src = local || url;
+    video.isStored = Boolean(local);
+    if (!reduceMotion) videoWatcher.observe(video);
+  });
+});
 
 
 // ---------- Naar een kaart schuiven ----------
