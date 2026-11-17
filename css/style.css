@@ -1046,10 +1046,17 @@ body:has(.page--me) {
 }
 
 /* De inhoud van de pagina (alles in <main>) krijgt ook een eigen naam. Zo wisselt alleen de inhoud,
-   en blijft wat erachter ligt (de achtergrondvideo) gewoon staan: die vloeit zacht over van de oude
-   pagina naar de nieuwe in plaats van mee weg te schuiven. */
+   en schuift wat erachter ligt (de achtergrondvideo) niet mee weg. */
 main {
   view-transition-name: page;
+}
+
+/* Wat achter de inhoud ligt doet niet mee aan de overgang: daar maakt de browser geen foto van.
+   Een foto staat stil, en zo bleef de achtergrond bij elke wissel een halve seconde hangen.
+   Nu zie je meteen de echte video van de nieuwe pagina, en die loopt verder waar de vorige stopte
+   (zie het script na de <video class="backdrop"> in elke pagina). */
+:root {
+  view-transition-name: none;
 }
 
 /* De inhoud: de oude schuift snel een beetje omhoog en vervaagt,
@@ -1691,7 +1698,9 @@ html:has(.nav a:nth-child(3)[aria-current="page"])::view-transition-image-pair(n
 }
 
 /* Op Work zachter: daar spelen je eigen video's, en de kaarten opzij zijn half doorzichtig,
-   dus een sterke achtergrond schemert door die beelden heen. */
+   dus een sterke achtergrond schemert door die beelden heen.
+   Kom je van een pagina met een andere sterkte, dan gaat de video er zacht naartoe in plaats van te
+   verspringen: dat doet het script na de <video> in elke pagina. */
 body:has(.page--work) .backdrop {
   opacity: 0.3;
 }

@@ -20,7 +20,7 @@
   <!-- Het eerste beeld dat je ziet (de poster van het nieuwste project) haalt de browser meteen op.
        Bij een nieuw project: zet hier de nieuwe poster, met exact hetzelfde adres als in de kaart. -->
   <link rel="preload" href="images/project-02.jpg?v=2026-11-05" as="image" fetchpriority="high">
-  <link rel="stylesheet" href="css/style.css?v=2026-11-17">
+  <link rel="stylesheet" href="css/style.css?v=2026-11-17c">
 
   <!-- Bewaart de video's op het toestel zodat ze meteen spelen (zie de uitleg bovenaan in js/videos.js).
        Staat hier en niet onderaan: de achtergrond heeft het nodig vóór de pagina getekend wordt. -->
@@ -74,9 +74,13 @@
         }, { once: true });
       };
 
-      // 1. Het bewaarde beeld staat er meteen, nog voor de video er is
+      // 1. Het bewaarde beeld staat er meteen, nog voor de video er is. Het begint even sterk als op de vorige
+      //    pagina en gaat in 0,6 s zacht naar de sterkte van deze pagina (Work toont de achtergrond zachter).
       const saved = read();
-      if (saved) video.style.backgroundImage = `url(${saved.frame})`;
+      if (saved) {
+        video.style.backgroundImage = `url(${saved.frame})`;
+        video.animate([{ opacity: saved.level, offset: 0 }], { duration: 600, easing: 'ease' });   // offset 0 = het begin
+      }
 
       // 2. De video zelf: van de schijf als hij daar bewaard is (zie js/videos.js), anders van het internet
       const source = video.dataset.src;
@@ -86,7 +90,7 @@
         if (saved) resume(saved);
       });
 
-      // 3. Bij het verlaten: bewaar het beeld van dit moment en de plek in de video
+      // 3. Bij het verlaten: bewaar het beeld van dit moment, de plek in de video en hoe sterk hij te zien was
       addEventListener('pagehide', () => {
         if (video.readyState < 2) return;   // nog geen beeld om te bewaren: het vorige blijft gelden
         const canvas = document.createElement('canvas');
@@ -94,7 +98,11 @@
         canvas.height = video.videoHeight;
         canvas.getContext('2d').drawImage(video, 0, 0);
         try {
-          sessionStorage.setItem('backdrop', JSON.stringify({ time: video.currentTime, frame: canvas.toDataURL('image/jpeg', 0.9) }));
+          sessionStorage.setItem('backdrop', JSON.stringify({
+            time: video.currentTime,
+            frame: canvas.toDataURL('image/jpeg', 0.9),
+            level: getComputedStyle(video).opacity,
+          }));
         } catch (error) {
           // niets bewaard: de volgende pagina begint vooraan
         }
