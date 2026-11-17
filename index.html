@@ -17,7 +17,7 @@
 
   <!-- Het lettertype staat in je eigen map: geen wachten op een andere server -->
   <link rel="preload" href="fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="css/style.css?v=2026-11-17c">
+  <link rel="stylesheet" href="css/style.css?v=2026-11-17f">
 
   <!-- Bewaart de video's op het toestel zodat ze meteen spelen (zie de uitleg bovenaan in js/videos.js).
        Staat hier en niet onderaan: de achtergrond heeft het nodig vóór de pagina getekend wordt. -->
@@ -47,7 +47,7 @@
 <body>
 
   <!-- PROEF: bewegende achtergrond. Een kleine, wazige video achter alles (zie .backdrop in css/style.css). -->
-  <video class="backdrop" data-src="videos/backdrop.mp4?v=3" autoplay muted loop playsinline disablepictureinpicture aria-hidden="true" tabindex="-1"></video>
+  <video class="backdrop" data-src="videos/backdrop.mp4?v=6" autoplay muted loop playsinline disablepictureinpicture aria-hidden="true" tabindex="-1"></video>
 
   <!-- De achtergrond loopt door van pagina naar pagina. Bij het verlaten bewaart de browser het beeld dat je
        op dat moment zag en de plek in de video. De volgende pagina toont dat beeld meteen (nog voor de video
@@ -56,10 +56,12 @@
     (() => {
       const video = document.currentScript.previousElementSibling;
 
-      // Wat de vorige pagina bewaarde: het beeld dat je zag en de plek in de video
+      // Wat de vorige pagina bewaarde: het beeld dat je zag en de plek in de video.
+      // Hoort het bij een andere (oudere) achtergrondvideo, dan telt het niet.
       const read = () => {
         try {
-          return JSON.parse(sessionStorage.getItem('backdrop'));
+          const kept = JSON.parse(sessionStorage.getItem('backdrop'));
+          return kept && kept.source === video.dataset.src ? kept : null;
         } catch (error) {
           return null;   // de browser mag niets onthouden (heel strenge privacy): de video begint dan vooraan
         }
@@ -99,6 +101,7 @@
         canvas.getContext('2d').drawImage(video, 0, 0);
         try {
           sessionStorage.setItem('backdrop', JSON.stringify({
+            source: video.dataset.src,
             time: video.currentTime,
             frame: canvas.toDataURL('image/jpeg', 0.9),
             level: getComputedStyle(video).opacity,
