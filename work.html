@@ -24,7 +24,7 @@
 
   <!-- Bewaart de video's op het toestel zodat ze meteen spelen (zie de uitleg bovenaan in js/videos.js).
        Staat hier en niet onderaan: de achtergrond heeft het nodig vóór de pagina getekend wordt. -->
-  <script src="js/videos.js?v=2026-11-17"></script>
+  <script src="js/videos.js?v=2026-11-19"></script>
 
   <!-- Bezoekersstatistieken (Umami, zonder cookies). data-domains: alleen de echte site telt mee, niet je tests. -->
   <script defer src="https://cloud.umami.is/script.js" data-website-id="9738d61e-05c8-4a8d-b611-049cfe5210c3" data-domains="debeulewouter.com"></script>
@@ -38,10 +38,12 @@
   <!-- Kom je net van de intro (js/intro.js laat dan een briefje achter)? Dan vaagt het menu rustig in
        (zie .from-intro in style.css). Dit staat in de head: de browser moet het weten vóór hij de pagina tekent. -->
   <script>
-    if (sessionStorage.getItem('from-intro')) {
-      sessionStorage.removeItem('from-intro');
-      document.documentElement.classList.add('from-intro');
-    }
+    try {
+      if (sessionStorage.getItem('from-intro')) {
+        sessionStorage.removeItem('from-intro');
+        document.documentElement.classList.add('from-intro');
+      }
+    } catch (error) {}   // de browser mag niets onthouden: het menu verschijnt dan gewoon
   </script>
 </head>
 <body>
@@ -52,75 +54,7 @@
   <!-- De achtergrond loopt door van pagina naar pagina. Bij het verlaten bewaart de browser het beeld dat je
        op dat moment zag en de plek in de video. De volgende pagina toont dat beeld meteen (nog voor de video
        geladen is) en laat de video vanaf die plek verder lopen: je ziet geen sprong en geen herstart. -->
-  <script>
-    (() => {
-      const video = document.currentScript.previousElementSibling;
-
-      // Wat de vorige pagina bewaarde: het beeld dat je zag en de plek in de video.
-      // Hoort het bij een andere (oudere) achtergrondvideo, dan telt het niet.
-      const read = () => {
-        try {
-          const kept = JSON.parse(sessionStorage.getItem('backdrop'));
-          return kept && kept.source === video.dataset.src ? kept : null;
-        } catch (error) {
-          return null;   // de browser mag niets onthouden (heel strenge privacy): de video begint dan vooraan
-        }
-      };
-
-      // De video begint op de plek van het bewaarde beeld
-      const resume = (saved) => {
-        video.currentTime = saved.time;
-        // Kent de video zijn lengte nog niet, dan onthoudt niet elke browser die plek: daarom nog eens zodra hij ze kent
-        video.addEventListener('loadedmetadata', () => {
-          if (Math.abs(video.currentTime - saved.time) > 0.1) video.currentTime = saved.time;
-        }, { once: true });
-      };
-
-      // 1. Het bewaarde beeld staat er meteen, nog voor de video er is. Het begint even sterk als op de vorige
-      //    pagina en gaat in 0,6 s zacht naar de sterkte van deze pagina (Work toont de achtergrond zachter).
-      const saved = read();
-      if (saved) {
-        video.style.backgroundImage = `url(${saved.frame})`;
-        video.animate([{ opacity: saved.level, offset: 0 }], { duration: 600, easing: 'ease' });   // offset 0 = het begin
-      }
-
-      // 2. De video zelf: van de schijf als hij daar bewaard is (zie js/videos.js), anders van het internet
-      const source = video.dataset.src;
-      const stored = typeof videoStore === 'undefined' ? Promise.resolve(null) : videoStore.local(source);
-      stored.then((local) => {
-        video.src = local || source;
-        if (saved) resume(saved);
-      });
-
-      // 3. Bij het verlaten: bewaar het beeld van dit moment, de plek in de video en hoe sterk hij te zien was
-      addEventListener('pagehide', () => {
-        if (video.readyState < 2) return;   // nog geen beeld om te bewaren: het vorige blijft gelden
-        const canvas = document.createElement('canvas');
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        canvas.getContext('2d').drawImage(video, 0, 0);
-        try {
-          sessionStorage.setItem('backdrop', JSON.stringify({
-            source: video.dataset.src,
-            time: video.currentTime,
-            frame: canvas.toDataURL('image/jpeg', 0.9),
-            level: getComputedStyle(video).opacity,
-          }));
-        } catch (error) {
-          // niets bewaard: de volgende pagina begint vooraan
-        }
-      });
-
-      // Terug met de knop van de browser: die pagina staat er nog zoals je ze verliet, dus ook daar bijwerken
-      addEventListener('pageshow', (event) => {
-        const latest = event.persisted && read();
-        if (latest) {
-          video.style.backgroundImage = `url(${latest.frame})`;
-          resume(latest);
-        }
-      });
-    })();
-  </script>
+  <script src="js/backdrop.js?v=2026-11-19"></script>
 
   <nav class="nav">
     <a href="work.html" aria-current="page">WORK</a>

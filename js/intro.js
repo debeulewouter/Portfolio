@@ -60,7 +60,8 @@ function leave() {
     .then(() => new Promise((resolve) => setTimeout(resolve, PAUSE)))
     .then(() => {
       // Een briefje voor work.html: "je komt van de intro". Dan laat Work zijn menu rustig invagen.
-      sessionStorage.setItem('from-intro', '1');
+      // Mag de browser niets onthouden (cookies geblokkeerd), dan gooit dit een fout: toch door naar Work
+      try { sessionStorage.setItem('from-intro', '1'); } catch (error) {}
       window.location.replace('work.html');
     });
 }

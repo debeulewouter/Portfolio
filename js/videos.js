@@ -85,7 +85,9 @@ const videoStore = (() => {
         if (!current.some((key) => request.url.includes(key))) await cache.delete(request);
       }
 
-      if (!document.querySelector('.page--work')) wanted.push(...cards);
+      // Zonder HEVC zijn er alleen de zware versies (tot 43 MB): die halen we niet op de achtergrond.
+      // Het bewaren is er voor Safari, en Safari kent HEVC altijd.
+      if (playsHevc && !document.querySelector('.page--work')) wanted.push(...cards);
       for (const url of wanted) await save(cache, url);
     } catch (error) {
       // Lukt het bewaren niet, dan is dat geen ramp: de video's komen dan van het internet
