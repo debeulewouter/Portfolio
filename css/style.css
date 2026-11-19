@@ -406,7 +406,7 @@ button {
 }
 
 .card--soon .card__image {
-  letter-spacing: 0.12em;
+  font-weight: 600;   /* zoals de nav: hoofdletters zonder extra letterafstand */
 }
 
 .card--soon .card__title {
@@ -717,13 +717,6 @@ button {
   --hero-share: 0.58;
 }
 
-/* Naast een brede video is de tekstkolom smaller: een kleinere titel blijft op één regel */
-@media (min-width: 769px) and (min-height: 561px) and (orientation: landscape) {
-  .project__intro--wide .project__title {
-    font-size: clamp(calc(32 * var(--u)), min(3vw, 5.5svh), calc(96 * var(--u)));
-  }
-}
-
 .project__hero {
   align-self: center;   /* is de tekst toch hoger dan het beeld (heel kleine schermen), dan staat het beeld in het midden ernaast */
   aspect-ratio: var(--hero-ratio);
@@ -794,14 +787,14 @@ button {
   min-width: 0;
 }
 
-/* De letters groeien mee met de breedte en de hoogte van je scherm.
-   margin-top: een hoofdletter begint 0.14em onder de bovenkant van zijn regel. Zoveel schuift de titel
+/* Even groot als de titel op Me, bij elk project: een lange titel loopt dan over twee regels.
+   margin-top: een hoofdletter begint 0.19em onder de bovenkant van zijn regel. Zoveel schuift de titel
    omhoog, zodat de bovenkant van de letters zelf (niet van de lege ruimte erboven) gelijk ligt met het beeld. */
 .project__title {
-  margin-top: -0.14em;
-  font-size: clamp(calc(40 * var(--u)), min(5vw, 9svh), calc(96 * var(--u)));
+  margin-top: -0.19em;
+  font-size: calc(64 * var(--u));
   font-weight: 600;
-  line-height: 1;
+  line-height: 1.1;
   letter-spacing: var(--tracking-display);
 }
 
@@ -851,12 +844,12 @@ button {
   flex-direction: column;
   gap: clamp(calc(12 * var(--u)), 2.2svh, calc(24 * var(--u)));
   font-size: clamp(calc(16 * var(--u)), min(1.05vw, 1.9svh), calc(20 * var(--u)));
-  line-height: 1.55;
+  line-height: 1.5;
   color: var(--text);
 }
 
 .case__story p:first-child {
-  font-size: clamp(calc(20 * var(--u)), min(1.7vw, 3svh), calc(32 * var(--u)));
+  font-size: calc(24 * var(--u));   /* even groot als de tekst op Me */
   font-weight: 500;
   line-height: 1.3;
   letter-spacing: var(--tracking-title);
@@ -1006,7 +999,7 @@ body:has(.page--me) {
   display: flex;
   gap: calc(32 * var(--u));
   margin-bottom: calc(12 * var(--u));
-  font-size: calc(20 * var(--u));
+  font-size: calc(18 * var(--u));
   font-weight: 500;
 }
 
@@ -1320,8 +1313,7 @@ html:has(.nav a:nth-child(3)[aria-current="page"])::view-transition-image-pair(n
   }
 
   .project__title {
-    font-size: 32px;
-    line-height: 1.05;
+    font-size: 36px;   /* even groot als de titel op Me */
   }
 
   .project__case {
@@ -1348,7 +1340,7 @@ html:has(.nav a:nth-child(3)[aria-current="page"])::view-transition-image-pair(n
   }
 
   .case__story p:first-child {
-    font-size: 20px;
+    font-size: 18px;   /* even groot als de tekst op Me */
     line-height: 1.35;
   }
 
