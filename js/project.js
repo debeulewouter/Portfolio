@@ -495,6 +495,10 @@ projectCards.forEach((card, i) => {
 
 viewClose.addEventListener('click', () => closeProject());
 
+// Herladen terwijl een project open stond: die stap in de geschiedenis is er nog, het project niet.
+// Eén stap terug, anders doet de terugknop de eerste keer niets.
+if (history.state?.project) history.back();
+
 // De terugknop van de browser, of terugvegen op je gsm: het project sluit en je blijft op de site.
 // Zonder dit ga je terug naar de pagina waar je vandaan kwam, en ben je de site kwijt.
 window.addEventListener('popstate', () => {
