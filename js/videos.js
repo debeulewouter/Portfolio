@@ -3,7 +3,7 @@
 // Safari (en dus elke iPhone) bewaart video's niet zoals beelden of scripts: bij elk bezoek aan een pagina
 // downloadt hij ze opnieuw, en zolang dat duurt zie je een stilstaand beeld. Daarom bewaart de site ze zelf,
 // in de opslag van de browser:
-//   - op de intro, Me en Contact worden de video's van Work op de achtergrond opgehaald en bewaard, in stukken
+//   - op de intro, Me en Contact wordt de video van het nieuwste project op de achtergrond opgehaald en bewaard, in stukken
 //     van 2 MB. Ga je intussen naar een andere pagina, dan gaat die verder waar de vorige stopte;
 //   - Work en de achtergrond vragen eerst hier of een video al volledig bewaard is. Zo ja, dan speelt hij
 //     van de schijf en begint hij meteen. Zo nee, dan komt hij van het internet, zoals vroeger.
@@ -87,7 +87,9 @@ const videoStore = (() => {
 
       // Zonder HEVC zijn er alleen de zware versies (tot 43 MB): die halen we niet op de achtergrond.
       // Het bewaren is er voor Safari, en Safari kent HEVC altijd.
-      if (playsHevc && !document.querySelector('.page--work')) wanted.push(...cards);
+      // Alleen het nieuwste project: de rest streamt Work zelf, anders haalt een iPhone alles twee keer op
+      // (Safari kent geen "data sparen", dus de check hierboven helpt daar niet)
+      if (playsHevc && !document.querySelector('.page--work')) wanted.push(...cards.slice(0, 1));
       for (const url of wanted) await save(cache, url);
     } catch (error) {
       // Lukt het bewaren niet, dan is dat geen ramp: de video's komen dan van het internet
