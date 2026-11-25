@@ -74,7 +74,9 @@ const videoStore = (() => {
       const wanted = backdrop ? [pick(backdrop)] : [];
 
       // De video's komen uit work.html zelf, dus nieuwe projecten gaan vanzelf mee. Het nieuwste eerst.
-      const html = await (await fetch('work.html')).text();
+      const response = await fetch('work.html');
+      if (!response.ok) return;
+      const html = await response.text();
       const work = new DOMParser().parseFromString(html, 'text/html');
       const cards = [...work.querySelectorAll('.card__image video')].reverse().map(pick);
 

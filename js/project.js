@@ -33,6 +33,7 @@ const FLIGHT = 700;   // zo lang vliegt het beeld tussen de kaart en de projectp
 
 let currentProject = 0;   // welk project open staat
 let landHero = null;      // zet een vliegend beeld op zijn plek (zie flyHero)
+let closingWithControl = false;
 
 
 // ---------- Hulpfuncties ----------
@@ -251,7 +252,7 @@ function restingRect(cardElement, image) {
   };
 }
 
-function openProject(i) {
+function openProject(i, addHistory = true) {
   // Vliegt het beeld nog (heel snel open en weer dicht)? Dan eerst op zijn plek zetten.
   if (landHero) landHero();
 
@@ -274,7 +275,7 @@ function openProject(i) {
   setInert(behind, true);
   // Een stap in de geschiedenis van de browser: zo sluit de terugknop het project (zie "Klikken en toetsen").
   // Zonder adres erbij: de link in de adresbalk blijft dezelfde en Umami telt geen extra bezoek.
-  history.pushState({ project: true }, '');
+  if (addHistory) history.pushState({ project: true, projectIndex: i }, '');
   viewClose.focus({ preventScroll: true });
 
   if (lessMotion) {
@@ -302,9 +303,6 @@ function closeProject(wentBack = false) {
   view.classList.remove('is-open');
   document.body.classList.remove('no-scroll');
   setInert(behind, false);
-  // Gesloten met het kruisje of Esc: de stap in de geschiedenis van het openen gaat mee terug
-  if (!wentBack && history.state?.project) history.back();
-
   // Laat de carrousel weten welk project open stond, dan zet hij dat in het midden
   document.dispatchEvent(new CustomEvent('project:close', { detail: { index: currentProject } }));
   projectCards[currentProject].focus({ preventScroll: true });
@@ -430,12 +428,11 @@ function zoomIn() {
   // Groot = met geluid. Dat mag van de browser, omdat je zelf net op de video klikte.
   // Weigert een browser het toch, dan speelt de video stil verder en kun je het icoon gebruiken.
   setSound(true);
-  if (!lessMotion) {
-    video.play().catch(() => {
-      setSound(false);
-      keepPlaying(video);
-    });
-  }
+  video.play().catch(() => {
+    if (!isZoomed() || video.parentElement !== zoomLayer) return;
+    setSound(false);
+    video.play().catch(() => {});
+  });
   const big = placeZoomVideo(video);
   // Geluidsknop alleen bij een video die geluid heeft. Sommige browsers weten dat pas
   // als de video speelt, dus we kijken nog een keer zodra hij loopt.
@@ -459,6 +456,7 @@ function zoomOut() {
   const video = zoomLayer.querySelector('video');
   zoomAnimation?.finish();
   setSound(false);
+  if (lessMotion) video.pause();
   view.classList.remove('is-zoomed');
   setInert([viewPage], false);
 
@@ -493,17 +491,37 @@ projectCards.forEach((card, i) => {
   });
 });
 
-viewClose.addEventListener('click', () => closeProject());
+function requestProjectClose() {
+  if (closingWithControl) return;
+  if (!history.state?.project) {
+    closeProject();
+    return;
+  }
+  // Wacht op popstate, zodat een snelle nieuwe klik geen extra stap in de geschiedenis maakt.
+  closingWithControl = true;
+  history.back();
+}
 
-// Herladen terwijl een project open stond: die stap in de geschiedenis is er nog, het project niet.
-// Eén stap terug, anders doet de terugknop de eerste keer niets.
-if (history.state?.project) history.back();
+viewClose.addEventListener('click', requestProjectClose);
 
-// De terugknop van de browser, of terugvegen op je gsm: het project sluit en je blijft op de site.
-// Zonder dit ga je terug naar de pagina waar je vandaan kwam, en ben je de site kwijt.
-window.addEventListener('popstate', () => {
-  if (view.classList.contains('is-open')) closeProject(true);
+// Terug sluit het project. Vooruit opent hetzelfde project zonder een nieuwe stap toe te voegen.
+window.addEventListener('popstate', (event) => {
+  const wentBack = !closingWithControl;
+  closingWithControl = false;
+  const index = event.state?.projectIndex;
+  if (event.state?.project && Number.isInteger(index) && projectCards[index]) {
+    if (view.classList.contains('is-open')) {
+      if (currentProject === index) return;
+      closeProject(true);
+    }
+    openProject(index, false);
+  } else if (view.classList.contains('is-open')) {
+    closeProject(wentBack);
+  }
 });
+
+// Herladen terwijl een project open stond: keer terug naar de carrousel.
+if (history.state?.project) history.back();
 
 viewHero.addEventListener('click', zoomIn);
 // Met het toetsenbord: Enter of spatie op de video
@@ -518,5 +536,5 @@ viewHero.addEventListener('keydown', (event) => {
 document.addEventListener('keydown', (event) => {
   if (event.key !== 'Escape' || !view.classList.contains('is-open')) return;
   if (isZoomed()) zoomOut();
-  else closeProject();
+  else requestProjectClose();
 });
